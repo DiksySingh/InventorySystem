@@ -2,13 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const itemSchema = new Schema({
-    name: {
+    itemName: {
         type: String,
-        required: true,
-    },
-    itemType: {
-        type: String,
-        enum: ['motor', 'pump', 'controller'],
         required: true,
     },
     stock: {
