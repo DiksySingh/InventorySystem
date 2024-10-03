@@ -1,23 +1,23 @@
 const Item = require("../models/itemSchema");
 
 module.exports.addItem = async(req, res) => {
-        const {name, itemType, stock, createdAt, updatedAt} = req.body;
-        if(!name){
+        const {itemName, stock, createdAt, updatedAt} = req.body;
+        if(!itemName){
             return res.status(400).json({
                 success: false,
-                message: "Name is required"
+                message: "itemName is required"
             });
         }
 
-        if(!itemType){
-            return res.status(400).json({
-                success: false,
-                message: "itemType is required"
-            });
-        }
+        // if(!stock){
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Stock is required"
+        //     });
+        // }
 
         try{
-            const newItem = new Item({name, itemType, stock, createdAt, updatedAt});
+            const newItem = new Item({itemName, stock, createdAt, updatedAt});
             const itemData = await newItem.save();
             if(!itemData){
                 return res.status(400).json({
@@ -59,4 +59,8 @@ module.exports.showItems = async(req, res) => {
             error: error.message
         });
     }
+}
+
+module.exports.productsOut = async(req, res) => {
+
 }
