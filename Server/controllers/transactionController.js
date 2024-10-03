@@ -91,3 +91,25 @@ module.exports.addTransaction = async(req, res) => {
         });
     }
 };
+
+module.exports.viewTransactions = async(req, res) =>{
+    try {
+        const allTransactions = await Transaction.find();
+        if(!allTransactions){
+            return res.status(404).json({
+                success: false,
+                message: "Data Not Found"
+            });
+        }
+        res.status(200).json({
+            success:true,
+            message: "Data Fetched Successfully",
+            data: allTransactions
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
