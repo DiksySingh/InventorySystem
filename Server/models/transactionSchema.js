@@ -32,7 +32,25 @@ const transactionSchema = new Schema({
    warehouse: {
        type: String,
        required: true
-   }
+   },
+   returnedItems: {
+        type: [{
+            itemName: {
+                type: String,
+                required: true,
+            },
+            quantity: {
+                type: Number,
+                required: true,
+                min: 1,
+            },
+            returnDate: {
+                type: Date,
+                default: Date.now,
+            },
+        }],
+        default: []
+    },
 });
 
 const Transaction = mongoose.model("Transaction", transactionSchema);

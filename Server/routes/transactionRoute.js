@@ -1,9 +1,13 @@
-const {addTransaction, viewTransactions} = require("../controllers/transactionController");
+const {addTransaction, viewTransactions,getTransactionByID, updateTransaction, returnItems, deleteTransaction} = require("../controllers/transactionController");
 const {userVerification} = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
 const upload = require("../middlewares/multerConfig");
 
-router.post("/new-transaction", upload.single("videoProof"), addTransaction);
-router.get("/show-transactions", viewTransactions);
+router.post("/transactions/newTransaction", upload.single("videoProof"), addTransaction);
+router.get("/transactions/allTransactions", viewTransactions);
+router.get("/transactions/view", getTransactionByID);
+router.patch("/transactions/update", upload.single('videoProof'), updateTransaction);
+router.delete("/transactions/delete", deleteTransaction);
+router.patch("/transactions/return", returnItems);
 
 module.exports = router;
