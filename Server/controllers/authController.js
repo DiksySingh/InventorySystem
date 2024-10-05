@@ -20,20 +20,20 @@ module.exports.Signup = async(req, res) => {
     }
 
     try{
-        const existingAdmin = await User.findOne({email});
-        if(existingAdmin){
+        const existingUser = await User.findOne({email});
+        if(existingUser){
             res.status(400). json({
                 success: false,
-                message: "Admin already exists"
+                message: "User already exists"
             });
         }
 
-        const newAdmin = new User({email, password, createdAt});
-        await newAdmin.save();
+        const newUser = new User({email, password, createdAt});
+        await newUser.save();
         res.status(201).json({
             success: true,
-            message: "Admin registered successfully",
-            data: newAdmin
+            message: "User registered successfully",
+            data: newUser
         }); 
     }catch(error){
         res.status(500).json({

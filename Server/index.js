@@ -34,6 +34,7 @@ app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..upload
 
 app.use("/user", authRoute);
 app.use("/inventory", itemRoute);
+app.use("/admin", itemRoute);
 app.use("/inventory", transactionRoute);
 
 app.listen(8080, () => {
