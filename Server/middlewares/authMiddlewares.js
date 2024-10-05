@@ -14,6 +14,7 @@ module.exports.userVerification = (roles) => {
                 return res.status(400).json({status: false, message: "Invalid Token"});
             }else{
                 try {
+                    console.log(data);
                     const user = await User.findById(data.id);
                     if (!user) {
                         return res.status(404).json({ 
@@ -23,7 +24,7 @@ module.exports.userVerification = (roles) => {
                     }
 
                     // Check if the user's role matches any of the allowed roles
-                    if (roles.includes(user.role)) {
+                    if (roles.includes(data.role)) {
                         req.user = user;
                         console.log(req.user); 
                         next(); 

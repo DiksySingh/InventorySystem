@@ -76,7 +76,7 @@ module.exports.Login = async(req, res) => {
             });
         }
         const role = roles[email];
-
+        console.log(role);
         const token = createSecretToken(user._id, role);
         res.cookie("token", token, {
             withCredentials: true,
@@ -87,7 +87,8 @@ module.exports.Login = async(req, res) => {
         res.status(200 ).json({
             success: true,
             message: `Logged in successfully`,   
-            email,
+            id: user._id,
+            email: user.email,
             token
         });
     }catch(error){

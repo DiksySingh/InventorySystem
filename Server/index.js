@@ -29,7 +29,7 @@ async function main() {
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
+app.use(express.urlencoded({ extended: true }));
 app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..uploads/videos_proofs')));
 
 app.use("/user", authRoute);
