@@ -1,12 +1,15 @@
 const Transaction = require("../models/transactionSchema");
 const Item = require("../models/itemSchema");
+const Person = require("../models/personSchema");
 
 //Add New Transaction
 module.exports.addTransaction = async(req, res) => {
     try{
-        const {name, contact, items, transactionDate, warehouse} = req.body
+        const {name, contact, items, transactionDate, warehouse, status} = req.body
         let itemsData = JSON.parse(items);
-        console.log(itemsData);
+        console.log(req.body);
+        //console.log(itemsData);
+        console.log(contact);
         let personContact = Number(contact);
         if(!name || !personContact || !itemsData || !warehouse){
             return res.status(400).json({
@@ -20,6 +23,14 @@ module.exports.addTransaction = async(req, res) => {
                 success: false,
                 message: "Items must be a non-empty array"
             });
+        }
+
+        let person = await Person.findOne({ contact: personContact });
+        // If the person doesn't exist, create a new person
+        if (!person) {
+            person = new Person({ name, contact: personContact });
+            console.log(person);
+            await person.save();
         }
 
         if(!req.file){
@@ -70,12 +81,12 @@ module.exports.addTransaction = async(req, res) => {
         }
 
         const newTransaction = new Transaction({
-            name,
-            contact,
+            person: person._id,
             items: itemsData,
             videoProof,
             transactionDate,
-            warehouse 
+            warehouse,
+            status
         });
         console.log(newTransaction);
         await newTransaction.save();
@@ -83,7 +94,7 @@ module.exports.addTransaction = async(req, res) => {
         res.status(200).json({
             success: true,
             message: "Transaction Created Successfully",
-            newTransaction
+            data: newTransaction
         });
     }catch(error){
         res.status(500).json({
@@ -96,7 +107,7 @@ module.exports.addTransaction = async(req, res) => {
 //View All Transactions
 module.exports.viewTransactions = async(req, res) =>{
     try {
-        const allTransactions = await Transaction.find();
+        const allTransactions = await Transaction.find().populate('person');
         if(!allTransactions){
             return res.status(404).json({
                 success: false,
@@ -127,7 +138,7 @@ module.exports.getTransactionByID = async(req, res) => {
     }
 
     try{
-        const transaction = await Transaction.findById(id);
+        const transaction = await Transaction.findById(id).populate('person', 'name contact');
         if(!transaction){
             return res.status(404).json({
                 success: false,
@@ -154,6 +165,7 @@ module.exports.updateTransaction = async(req, res) => {
     try{
         const {id} = req.query;
         const updates = req.body;
+        console.log(req.body)
         if(!id){
             return res.status(400).json({
                 success: false,
@@ -161,7 +173,8 @@ module.exports.updateTransaction = async(req, res) => {
             });
         }
         
-        const transaction = await Transaction.findById(id);
+        const transaction = await Transaction.findById(id).populate('person');
+        console.log(transaction);
         if (!transaction) {
             return res.status(404).json({
                 success: false,
@@ -169,8 +182,29 @@ module.exports.updateTransaction = async(req, res) => {
             });
         }
 
-        if (updates.name) transaction.name = updates.name;
-        if (updates.contact) transaction.contact = Number(updates.contact);
+        // if (updates.name) transaction.name = updates.name;
+        // if (updates.contact) transaction.contact = Number(updates.contact);
+
+        if (updates.name || updates.contact) {
+            console.log(transaction.person._id);
+            const person = await Person.findById({_id: transaction.person._id});
+            console.log(person);
+            if (!person) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Person not found"
+                });
+            }
+            if(updates.name){
+                person.name = updates.name;
+            }
+            if(updates.contact){
+                const personContact = Number(updates.contact);
+                person.contact = personContact;
+            }
+            
+            await person.save();
+        }
         
         if (updates.items) {
             const newItems = JSON.parse(updates.items);  
@@ -228,6 +262,7 @@ module.exports.updateTransaction = async(req, res) => {
         }
 
         if (updates.warehouse) transaction.warehouse = updates.warehouse;
+        if (updates.status) transaction.status = updates.status;
 
         // Check if a new videoProof file is uploaded
         if (req.file) {
@@ -237,11 +272,11 @@ module.exports.updateTransaction = async(req, res) => {
 
         // Save the updated transaction
         await transaction.save();
-
+        const updatedTransaction = await Transaction.findById(id).populate('person', 'name contact');
         res.status(200).json({
             success: true,
             message: "Transaction updated successfully",
-            transaction
+            updatedTransaction
         });
     }catch(error){
         res.status(500).json({
@@ -345,6 +380,47 @@ module.exports.deleteTransaction = async(req, res) => {
             success: true,
             message: "Transaction Removed Successfully",
             deletedTransaction
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+}
+
+module.exports.updateTransactionStatus = async(req, res) => {
+    const {id} = req.query;
+    const newStatus = req.body;
+    if(!id){
+        return res.status(400).json({
+            success: false,
+            message: "OrderID is required"
+        });
+    }
+    if(!newStatus){
+        return res.status(400).json({
+            success: false,
+            message: "Status is required"
+        });
+    }
+
+    try{
+        const transaction = await Transaction.findById(id);
+        if(!transaction){
+            return res.status(404).json({
+                success: false,
+                message: "Data Not Found"
+            });
+        }
+
+        transaction.status = newStatus;
+        await transaction.save();
+
+        res.status(200).json({
+            success: true,
+            message: "Status Updated Successfully",
+            data: transaction
         });
     }catch(error){
         res.status(500).json({

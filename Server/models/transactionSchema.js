@@ -2,14 +2,11 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    contact: {
-        type: Number,
-        required: true,
-    },
+   person: {
+        type: Schema.Types.ObjectId,
+        ref: 'Person',
+        required: true
+   },
    items: [{
         itemName: {
             type: String,
@@ -32,6 +29,11 @@ const transactionSchema = new Schema({
    warehouse: {
        type: String,
        required: true
+   },
+   status: {
+        type: String,
+        enum:['OUT', 'IN'],
+        default: 'OUT'
    },
    returnedItems: {
         type: [{
