@@ -1,6 +1,6 @@
 const Transaction = require("../models/transactionSchema");
 const Item = require("../models/itemSchema");
-const Person = require("../models/personSchema");
+const Technician = require("../models/technicianSchema");
 
 //Add New Transaction
 module.exports.addTransaction = async(req, res) => {
@@ -25,12 +25,12 @@ module.exports.addTransaction = async(req, res) => {
             });
         }
 
-        let person = await Person.findOne({ contact: personContact });
+        let technician = await Technician.findOne({ contact: personContact });
         // If the person doesn't exist, create a new person
-        if (!person) {
-            person = new Person({ name, contact: personContact });
-            console.log(person);
-            await person.save();
+        if (!technician) {
+            technician = new Technician({ name, contact: personContact });
+            console.log(technician);
+            await technician.save();
         }
 
         if(!req.file){
@@ -81,7 +81,7 @@ module.exports.addTransaction = async(req, res) => {
         }
 
         const newTransaction = new Transaction({
-            person: person._id,
+            technicianDetail: technician._id,
             items: itemsData,
             videoProof,
             transactionDate,
@@ -107,7 +107,7 @@ module.exports.addTransaction = async(req, res) => {
 //View All Transactions
 module.exports.viewTransactions = async(req, res) =>{
     try {
-        const allTransactions = await Transaction.find().populate('person');
+        const allTransactions = await Transaction.find().populate('technicianDetail');
         if(!allTransactions){
             return res.status(404).json({
                 success: false,
@@ -138,7 +138,7 @@ module.exports.getTransactionByID = async(req, res) => {
     }
 
     try{
-        const transaction = await Transaction.findById(id).populate('person', 'name contact');
+        const transaction = await Transaction.findById(id).populate('technicianDetail', 'name contact');
         if(!transaction){
             return res.status(404).json({
                 success: false,
@@ -173,7 +173,7 @@ module.exports.updateTransaction = async(req, res) => {
             });
         }
         
-        const transaction = await Transaction.findById(id).populate('person');
+        const transaction = await Transaction.findById(id).populate('technicianDetail');
         console.log(transaction);
         if (!transaction) {
             return res.status(404).json({
@@ -186,24 +186,24 @@ module.exports.updateTransaction = async(req, res) => {
         // if (updates.contact) transaction.contact = Number(updates.contact);
 
         if (updates.name || updates.contact) {
-            console.log(transaction.person._id);
-            const person = await Person.findById({_id: transaction.person._id});
-            console.log(person);
-            if (!person) {
+            console.log(transaction.technicianDetail._id);
+            const technician = await Technician.findById({_id: transaction.technicianDetail._id});
+            console.log(technician);
+            if (!technician) {
                 return res.status(404).json({
                     success: false,
                     message: "Person not found"
                 });
             }
             if(updates.name){
-                person.name = updates.name;
+                technician.name = updates.name;
             }
             if(updates.contact){
-                const personContact = Number(updates.contact);
-                person.contact = personContact;
+                const technicianContact = Number(updates.contact);
+                technician.contact = technicianContact;
             }
             
-            await person.save();
+            await technician.save();
         }
         
         if (updates.items) {
@@ -272,7 +272,7 @@ module.exports.updateTransaction = async(req, res) => {
 
         // Save the updated transaction
         await transaction.save();
-        const updatedTransaction = await Transaction.findById(id).populate('person', 'name contact');
+        const updatedTransaction = await Transaction.findById(id).populate('technicianDetail', 'name contact');
         res.status(200).json({
             success: true,
             message: "Transaction updated successfully",
@@ -389,13 +389,41 @@ module.exports.deleteTransaction = async(req, res) => {
     }
 }
 
+
+
+//Technician Controller
+//Get Specific Transaction of Technician
+module.exports.getTechnicianTransactions = async(req, res) =>{
+    try {
+        const transactions = await Transaction.find({ technicianDetail: req.user._id }).populate('technicianDetail');
+        if(!transactions){
+            return res.status(404).json({
+                success: false,
+                message: "Data Not Found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            transactions
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+//Update Status of Transaction
 module.exports.updateTransactionStatus = async(req, res) => {
+    const technicianId = req.user._id;
     const {id} = req.query;
-    const newStatus = req.body;
+    const {newStatus} = req.body;
     if(!id){
         return res.status(400).json({
             success: false,
-            message: "OrderID is required"
+            message: "Transaction ID is required"
         });
     }
     if(!newStatus){
@@ -416,11 +444,11 @@ module.exports.updateTransactionStatus = async(req, res) => {
 
         transaction.status = newStatus;
         await transaction.save();
-
+        const updatedStatus = await Transaction.findById(id).populate('technicianDetail');
         res.status(200).json({
             success: true,
             message: "Status Updated Successfully",
-            data: transaction
+            data: updatedStatus
         });
     }catch(error){
         res.status(500).json({
@@ -428,4 +456,4 @@ module.exports.updateTransactionStatus = async(req, res) => {
             error: error.message
         });
     }
-}
+};

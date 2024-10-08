@@ -2,9 +2,12 @@ const {addItem, showItems, updateItem, deleteItem} = require("../controllers/ite
 const {userVerification} = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
 
-router.post("/newItem", userVerification(['inventory']), addItem);
+//Admin Accessible Route
 router.get("/viewItems", userVerification(['admin']), showItems);
-router.patch("/updateItem", updateItem);
-router.delete("/deleteItem", deleteItem);
+
+//Inventory Accessible Route
+router.post("/newItem", userVerification(['inventory']), addItem);
+router.patch("/updateItem", userVerification(['inventory']), updateItem);
+router.delete("/deleteItem", userVerification(['inventory']), deleteItem);
 
 module.exports = router;

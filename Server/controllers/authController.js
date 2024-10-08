@@ -1,7 +1,10 @@
 const User = require("../models/userSchema");
+const Technician = require("../models/technicianSchema");
+const {createTechnicianToken} = require("../util/secretToken");
 const {createSecretToken} = require("../util/secretToken");
 const bcrypt = require("bcrypt");
 
+//Admin and Inventory SignUp Controller
 module.exports.Signup = async(req, res) => {
     const {email, password, createdAt} = req.body;
 
@@ -43,6 +46,8 @@ module.exports.Signup = async(req, res) => {
     }
 }
 
+
+//Admin and Inventory Login Controller
 const roles = {
     "admin@example.com": "admin",
     "inventory@example.com": "inventory",
@@ -95,6 +100,49 @@ module.exports.Login = async(req, res) => {
         res.status(500).json({
             success: false,
             message: "Internal Server Error",
+            error: error.message
+        });
+    }
+}
+
+
+//Technician Login Controller
+module.exports.technicianLogin = async(req, res) => {
+    try{
+        const {contact} = req.body;
+        console.log(req.body);
+        if(!contact){
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required"
+            });
+        }
+        
+        const technician = await Technician.findOne({contact});
+        console.log(technician)
+        if(!technician){
+            res.status(401).json({
+                success: false,
+                message: "Technician Not Found"
+            });
+        }
+
+        const token = createTechnicianToken(technician._id);
+        res.cookie("token", token, {
+            withCredentials: true,
+            httpOnly: true, 
+            secure: true
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Login Successful",
+            technician,
+            token
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
             error: error.message
         });
     }

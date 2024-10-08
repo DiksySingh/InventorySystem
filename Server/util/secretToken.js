@@ -6,3 +6,9 @@ module.exports.createSecretToken = (id, role) => {
         expiresIn: 3 * 24 * 60 * 60
     });
 };
+
+module.exports.createTechnicianToken = (technicianId) => {
+    return jwt.sign({ id: technicianId }, process.env.TOKEN_KEY, {
+        expiresIn: 3 * 24 * 60 * 60
+    });
+};
