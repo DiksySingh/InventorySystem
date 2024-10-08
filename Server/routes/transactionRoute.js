@@ -11,7 +11,7 @@ router.delete("/transactions/delete", deleteTransaction);
 router.patch("/transactions/return", returnItems);
 
 //Admin and Inventory Both
-router.get("/transactions/allTransactions", viewTransactions);
+router.get("/transactions/allTransactions", userVerification(['admin','inventory']), viewTransactions);
 
 //Technician
 router.get("/transactions/transactionDetails", technicianVerification, getTechnicianTransactions)

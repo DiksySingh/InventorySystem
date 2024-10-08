@@ -33,8 +33,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..uploads/videos_proofs')));
 
 app.use("/user", authRoute);
-app.use("/inventory", itemRoute);
 app.use("/admin", itemRoute);
+app.use("/admin", transactionRoute);
+app.use("/inventory", itemRoute);
 app.use("/inventory", transactionRoute);
 app.use("/technician", transactionRoute);
 
