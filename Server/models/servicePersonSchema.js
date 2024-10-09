@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const technicianSchema = new Schema({
+const servicePersonSchema = new Schema({
     name: {
         type: String,
         required: true,
+    },
+    email: {
+        type: String,
+        required: true
     },
     contact: {
         type: Number,
@@ -17,8 +21,20 @@ const technicianSchema = new Schema({
             },
             message: props => `${props.value} is not a valid 10-digit phone number!`
         }
+    },
+    password: {
+        type: String,
+        required: true,
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    refreshToken: {
+        type: String,
+        default: null
     }
 });
 
-const Technician = mongoose.model("Technician", technicianSchema);
-module.exports = Technician;
+const ServicePerson = mongoose.model("Service_Person", servicePersonSchema);
+module.exports = ServicePerson;

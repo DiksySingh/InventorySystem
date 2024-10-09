@@ -1,6 +1,6 @@
 const Transaction = require("../models/transactionSchema");
 const Item = require("../models/itemSchema");
-const Technician = require("../models/technicianSchema");
+const ServicePerson = require("../models/servicePersonSchema");
 
 //Add New Transaction
 module.exports.addTransaction = async(req, res) => {
@@ -25,7 +25,7 @@ module.exports.addTransaction = async(req, res) => {
             });
         }
 
-        let technician = await Technician.findOne({ contact: personContact });
+        let technician = await ServicePerson.findOne({ contact: personContact });
         // If the person doesn't exist, create a new person
         if (!technician) {
             technician = new Technician({ name, contact: personContact });
