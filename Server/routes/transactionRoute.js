@@ -4,14 +4,14 @@ const router = require("express").Router();
 const upload = require("../middlewares/multerConfig");
 
 //Inventory
-router.post("/transactions/newTransaction", upload.single("videoProof"), addTransaction);
-router.get("/transactions/view", getTransactionByID);
-router.patch("/transactions/update", upload.single('videoProof'), updateTransaction);
-router.delete("/transactions/delete", deleteTransaction);
-router.patch("/transactions/return", returnItems);
+router.post("/transactions/newTransaction", userVerification(['inventory']), upload.single("videoProof"), addTransaction);
+router.patch("/transactions/update", userVerification(['inventory']), upload.single('videoProof'), updateTransaction);
+router.delete("/transactions/delete", userVerification(['inventory']), deleteTransaction);
+router.patch("/transactions/return", userVerification(['inventory']), returnItems);
 
 //Admin and Inventory Both
 router.get("/transactions/allTransactions", userVerification(['admin','inventory']), viewTransactions);
+router.get("/transactions/view", userVerification(['admin','inventory']), getTransactionByID);
 
 //Technician
 router.get("/transactions/transactionDetails", technicianVerification, getTechnicianTransactions)
