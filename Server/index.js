@@ -37,7 +37,7 @@ app.use("/admin", itemRoute);
 app.use("/admin", transactionRoute);
 app.use("/inventory", itemRoute);
 app.use("/inventory", transactionRoute);
-app.use("/technician", transactionRoute);
+app.use("/service-person", transactionRoute);
 
 app.listen(8080, () => {
     console.log("Server running at port 8080");

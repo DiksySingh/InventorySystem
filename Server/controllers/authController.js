@@ -1,13 +1,12 @@
 const User = require("../models/userSchema");
 const ServicePerson = require("../models/servicePersonSchema");
-const {createTechnicianToken} = require("../util/secretToken");
 const {createSecretToken, createRefreshToken} = require("../util/secretToken");
 const bcrypt = require("bcrypt");
 
 
 //Admin and Inventory SignUp Controller
 module.exports.userSignup = async(req, res) => {
-    const {email, password, createdAt} = req.body;
+    const {email, password, createdAt, role} = req.body;
 
     if(!email){
         return res.status(400).json({
@@ -32,7 +31,7 @@ module.exports.userSignup = async(req, res) => {
             });
         }
 
-        const newUser = new User({email, password, createdAt});
+        const newUser = new User({email, password, createdAt, role});
         await newUser.save();
         res.status(201).json({
             success: true,
@@ -49,7 +48,7 @@ module.exports.userSignup = async(req, res) => {
 }
 
 module.exports.servicePersonSignup = async(req, res) => {
-    const {name, email, contact, password, createdAt} = req.body;
+    const {name, email, contact, password, createdAt, role} = req.body;
     if(!name || !email || !contact || !password){
         return res.status(400).json({
             success: false,
@@ -72,7 +71,8 @@ module.exports.servicePersonSignup = async(req, res) => {
             email, 
             contact, 
             password: hashedPassword,
-            createdAt, 
+            createdAt,
+            role,
             refreshToken: null
         });
         await newServicePrson.save();
@@ -94,6 +94,103 @@ module.exports.servicePersonSignup = async(req, res) => {
         });
     }
 }
+
+module.exports.Login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const options = {
+            httpOnly: true,
+            secure: true,
+        };
+
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message: "All fields are required",
+            });
+        }
+
+        // Check if user exists in User schema
+        let user = await User.findOne({ email });
+        if (!user) {
+            // If user not found, check Technician schema
+            user = await ServicePerson.findOne({ email });
+            if (!user) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Incorrect email or password",
+                });
+            }
+        }
+
+        // Compare password
+        const auth = await bcrypt.compare(password, user.password);
+        if (!auth) {
+            return res.status(401).json({
+                success: false,
+                message: "Incorrect email or password",
+            });
+        }
+        //const role = roles[email] || 'serviceperson'; 
+        const role = user.role;
+        const accessToken = createSecretToken(user._id, role);
+        const refreshToken = createRefreshToken(user._id, role);
+
+        // Update the refreshToken in the database
+        if (user.constructor.modelName === 'User') {
+            await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
+        } else {
+            await ServicePerson.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
+        }
+
+        // Set cookies for tokens
+        res.status(200)
+            .cookie('accessToken', accessToken, options)
+            .cookie('refreshToken', refreshToken, options)
+            .json({
+                success: true,
+                message: `Logged in successfully`,
+                id: user._id,
+                email: user.email,
+                accessToken,
+                refreshToken,
+                role
+            });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message,
+        });
+    }
+};
+
+module.exports.Logout = async (req, res) => {
+    try {
+        const userID = req.user._id; // req.user will contain either User or ServicePerson based on the role
+        const role = req.user.role; // Assuming role is set in the token
+
+        if (role === 'serviceperson') {
+            await ServicePerson.findByIdAndUpdate(userID, { $set: { refreshToken: null } });
+        } else {
+            await User.findByIdAndUpdate(userID, { $set: { refreshToken: null } });
+        }
+
+        return res.status(200)
+            .clearCookie("accessToken", { httpOnly: true, secure: true })
+            .clearCookie("refreshToken", { httpOnly: true, secure: true })
+            .json({
+                success: true,
+                message: "Logged Out Successfully"
+            });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+};
+
 
 
 //Admin and Inventory Login Controller
@@ -162,79 +259,10 @@ module.exports.servicePersonSignup = async(req, res) => {
 //     }
 // }
 
-const roles = {
-    "admin@example.com": "admin",
-    "warehouseadmin@example.com": "warehouseAdmin",
-};
-
-module.exports.Login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const options = {
-            httpOnly: true,
-            secure: true,
-        };
-
-        if (!email || !password) {
-            return res.status(400).json({
-                success: false,
-                message: "All fields are required",
-            });
-        }
-
-        // Check if user exists in User schema
-        let user = await User.findOne({ email });
-        if (!user) {
-            // If user not found, check Technician schema
-            user = await ServicePerson.findOne({ email });
-            if (!user) {
-                return res.status(401).json({
-                    success: false,
-                    message: "Incorrect email or password",
-                });
-            }
-        }
-
-        // Compare password
-        const auth = await bcrypt.compare(password, user.password);
-        if (!auth) {
-            return res.status(401).json({
-                success: false,
-                message: "Incorrect email or password",
-            });
-        }
-        const role = roles[email] || 'serviceperson'; 
-        const accessToken = createSecretToken(user._id, role);
-        const refreshToken = createRefreshToken(user._id);
-
-        // Update the refreshToken in the database
-        if (user.constructor.modelName === 'User') {
-            await User.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
-        } else {
-            await ServicePerson.findByIdAndUpdate(user._id, { refreshToken: refreshToken });
-        }
-
-        // Set cookies for tokens
-        res.status(200)
-            .cookie('accessToken', accessToken, options)
-            .cookie('refreshToken', refreshToken, options)
-            .json({
-                success: true,
-                message: `Logged in successfully`,
-                id: user._id,
-                email: user.email,
-                accessToken,
-                refreshToken,
-                role
-            });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-            error: error.message,
-        });
-    }
-};
+// const roles = {
+//     "admin@example.com": "admin",
+//     "warehouseadmin@example.com": "warehouseAdmin",
+// };
 
 
 //Technician Login Controller
@@ -363,29 +391,3 @@ module.exports.Login = async (req, res) => {
 //     }
 // };
 
-module.exports.Logout = async (req, res) => {
-    try {
-        const userID = req.user ? req.user._id : null; // Assuming userVerification sets req.user
-        const technicianID = req.technician ? req.technician._id : null; // Assuming technicianVerification sets req.technician
-
-        if (userID) {
-            await User.findByIdAndUpdate(userID, { $set: { refreshToken: null } });
-        } else if (technicianID) {
-            await Technician.findByIdAndUpdate(technicianID, { $set: { refreshToken: null } });
-        }
-
-        return res.status(200)
-            .clearCookie("accessToken", { httpOnly: true, secure: true })
-            .clearCookie("refreshToken", { httpOnly: true, secure: true })
-            .json({
-                success: true,
-                message: "Logged Out Successfully"
-            });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: "Internal Server Error",
-            error: error.message
-        });
-    }
-};

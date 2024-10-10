@@ -26,6 +26,11 @@ const servicePersonSchema = new Schema({
         type: String,
         required: true,
     },
+    role: {
+        type: String,
+        required: true,
+        default: 'serviceperson'
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -34,7 +39,7 @@ const servicePersonSchema = new Schema({
         type: String,
         default: null
     }
-});
+}, { collection: 'servicepersons' });
 
 const ServicePerson = mongoose.model("Service_Person", servicePersonSchema);
 module.exports = ServicePerson;

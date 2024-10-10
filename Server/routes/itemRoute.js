@@ -6,8 +6,8 @@ const router = require("express").Router();
 router.get("/viewItems", userVerification(['admin']), showItems);
 
 //Inventory Accessible Route
-router.post("/newItem", userVerification(['inventory']), addItem);
-router.patch("/updateItem", userVerification(['inventory']), updateItem);
-router.delete("/deleteItem", userVerification(['inventory']), deleteItem);
+router.post("/newItem", userVerification(['warehouseAdmin']), addItem);
+router.patch("/updateItem", userVerification(['warehouseAdmin']), updateItem);
+router.delete("/deleteItem", userVerification(['warehouseAdmin']), deleteItem);
 
 module.exports = router;
