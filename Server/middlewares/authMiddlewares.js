@@ -90,7 +90,7 @@ module.exports.refreshToken = async (req, res) => {
 
             const { id } = decoded;
 
-            // Match the refresh token in either User or Technician schema
+            // Match the refresh token in either User or ServicePerson schema
             let user;
             user = await User.findById(id);
             if (!user) {
@@ -122,14 +122,14 @@ module.exports.refreshToken = async (req, res) => {
             // Send the new tokens in response
             res.status(200)
                 .cookie("accessToken", newAccessToken, {
+                    withCredentials: true,
                     httpOnly: true,
-                    secure: true,
-                    sameSite: "None"
+                    secure: false,
                 })
                 .cookie("refreshToken", newRefreshToken, {
+                    withCredentials: true,
                     httpOnly: true,
-                    secure: true,
-                    sameSite: "None"
+                    secure: false,
                 })
                 .json({
                     success: true,

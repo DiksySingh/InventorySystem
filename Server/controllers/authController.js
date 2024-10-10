@@ -103,8 +103,9 @@ module.exports.Login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const options = {
+            withCredentials: true,
             httpOnly: true,
-            secure: true,
+            secure: false
         };
 
         if (!email || !password) {
