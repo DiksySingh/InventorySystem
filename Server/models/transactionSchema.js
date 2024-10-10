@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const transactionSchema = new Schema({
-   technicianDetail: {
+   servicePerson: {
         type: Schema.Types.ObjectId,
-        ref: 'Technician',
+        ref: 'ServicePerson',
         required: true
    },
    items: [{

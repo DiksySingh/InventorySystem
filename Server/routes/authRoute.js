@@ -1,4 +1,4 @@
-const {userSignup, Login, technicianLogin, Logout, servicePersonSignup } = require("../controllers/authController");
+const {userSignup,  servicePersonSignup, Login, Logout, updatePassword} = require("../controllers/authController");
 const {userVerification, refreshToken} = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
 
@@ -6,6 +6,7 @@ router.post("/user-signup",userSignup);
 router.post("/service-person-signup", servicePersonSignup)
 router.post("/login", Login);
 router.post("/logout", Logout);
+router.post("/update-password", userVerification(['serviceperson']), updatePassword);
 router.post("/refresh-token", refreshToken);
 // router.post("/technician-login", technicianLogin);
 

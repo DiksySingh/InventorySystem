@@ -2,6 +2,7 @@ const User = require("../models/userSchema");
 const ServicePerson = require("../models/servicePersonSchema");
 const {createSecretToken, createRefreshToken} = require("../util/secretToken");
 const bcrypt = require("bcrypt");
+const { refreshToken } = require("../middlewares/authMiddlewares");
 
 
 //Admin and Inventory SignUp Controller
@@ -83,7 +84,10 @@ module.exports.servicePersonSignup = async(req, res) => {
                 name: newServicePrson.name,
                 email: newServicePrson.email,
                 contact: newServicePrson.contact,
-                createdAt: newServicePrson.createdAt
+                password: newServicePrson.password,
+                createdAt: newServicePrson.createdAt,
+                role: newServicePrson.role,
+                refreshToken
             }
         }); 
     }catch(error){
@@ -134,7 +138,7 @@ module.exports.Login = async (req, res) => {
         //const role = roles[email] || 'serviceperson'; 
         const role = user.role;
         const accessToken = createSecretToken(user._id, role);
-        const refreshToken = createRefreshToken(user._id, role);
+        const refreshToken = createRefreshToken(user._id);
 
         // Update the refreshToken in the database
         if (user.constructor.modelName === 'User') {
@@ -187,6 +191,43 @@ module.exports.Logout = async (req, res) => {
         res.status(500).json({
             success: false,
             error: error.message
+        });
+    }
+};
+
+
+module.exports.updatePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    try {
+        const servicePerson = await ServicePerson.findById(req.user._id); 
+
+        if (!servicePerson) {
+            return res.status(404).json({ success: false, message: 'Service person not found' });
+        }
+
+        // Check if the current password is correct
+        const isMatch = await bcrypt.compare(currentPassword, servicePerson.password);
+        if (!isMatch) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Current password is incorrect' 
+            });
+        }
+
+        // Update the password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        servicePerson.password = hashedPassword; 
+        await servicePerson.save();
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'Password updated successfully',
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
         });
     }
 };

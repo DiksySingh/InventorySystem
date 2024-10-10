@@ -1,17 +1,18 @@
-const Transaction = require("../models/transactionSchema");
+const mongoose = require("mongoose");
 const Item = require("../models/itemSchema");
+const Transaction = require("../models/transactionSchema");
 const ServicePerson = require("../models/servicePersonSchema");
 
 //Add New Transaction
-module.exports.addTransaction = async(req, res) => {
+const addTransaction = async(req, res) => {
+    const session = await mongoose.startSession(); // Start a session
+    session.startTransaction(); // Begin a transaction
     try{
-        const {name, contact, items, transactionDate, warehouse, status} = req.body
-        let itemsData = JSON.parse(items);
         console.log(req.body);
-        //console.log(itemsData);
-        console.log(contact);
+        const {name, contact, items, transactionDate, warehouse, status} = req.body;
+        let itemsData = JSON.parse(items);
         let personContact = Number(contact);
-        if(!name || !personContact || !itemsData || !warehouse){
+        if(!name || !personContact || !itemsData || !warehouse || !status){
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
@@ -25,12 +26,12 @@ module.exports.addTransaction = async(req, res) => {
             });
         }
 
-        let technician = await ServicePerson.findOne({ contact: personContact });
-        // If the person doesn't exist, create a new person
-        if (!technician) {
-            technician = new Technician({ name, contact: personContact });
-            console.log(technician);
-            await technician.save();
+        let servicePerson = await ServicePerson.findOne({ contact: personContact }).session(session);;
+        if (!servicePerson) {
+            return res.status(404).json({
+                success: false,
+                message: "servicePerson not found"
+            });
         }
 
         if(!req.file){
@@ -51,8 +52,7 @@ module.exports.addTransaction = async(req, res) => {
                 });
             }
             try{
-                const foundItem = await Item.findOne({ itemName });
-
+                const foundItem = await Item.findOne({ itemName }).session(session);
                 if (!foundItem) {
                     return res.status(404).json({
                         success: false,
@@ -81,7 +81,7 @@ module.exports.addTransaction = async(req, res) => {
         }
 
         const newTransaction = new Transaction({
-            technicianDetail: technician._id,
+            servicePerson: servicePerson._id,
             items: itemsData,
             videoProof,
             transactionDate,
@@ -89,7 +89,10 @@ module.exports.addTransaction = async(req, res) => {
             status
         });
         console.log(newTransaction);
-        await newTransaction.save();
+        await newTransaction.save({ session }); // Save with session
+
+        // Commit the transaction
+        await session.commitTransaction();
 
         res.status(200).json({
             success: true,
@@ -97,17 +100,20 @@ module.exports.addTransaction = async(req, res) => {
             data: newTransaction
         });
     }catch(error){
+        await session.abortTransaction(); // Abort the transaction on error
         res.status(500).json({
             success: false,
             error: error.message
         });
+    }finally {
+        session.endSession(); // End the session
     }
 };
 
 //View All Transactions
-module.exports.viewTransactions = async(req, res) =>{
+const viewTransactions = async(req, res) =>{
     try {
-        const allTransactions = await Transaction.find().populate('technicianDetail');
+        const allTransactions = await Transaction.find().populate('servicePerson');
         if(!allTransactions){
             return res.status(404).json({
                 success: false,
@@ -128,7 +134,7 @@ module.exports.viewTransactions = async(req, res) =>{
 };
 
 //View Particular Transaction Using ID
-module.exports.getTransactionByID = async(req, res) => {
+const getTransactionByID = async(req, res) => {
     const {id} = req.query;
     if(!id){
         return res.status(400).json({
@@ -138,7 +144,7 @@ module.exports.getTransactionByID = async(req, res) => {
     }
 
     try{
-        const transaction = await Transaction.findById(id).populate('technicianDetail', 'name contact');
+        const transaction = await Transaction.findById(id).populate('servicePerson', 'name email contact');
         if(!transaction){
             return res.status(404).json({
                 success: false,
@@ -161,7 +167,9 @@ module.exports.getTransactionByID = async(req, res) => {
 
 
 //Update a transaction using ID
-module.exports.updateTransaction = async(req, res) => {
+const updateTransaction = async(req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try{
         const {id} = req.query;
         const updates = req.body;
@@ -173,7 +181,7 @@ module.exports.updateTransaction = async(req, res) => {
             });
         }
         
-        const transaction = await Transaction.findById(id).populate('technicianDetail');
+        const transaction = await Transaction.findById(id).populate('servicePerson').session(session);
         console.log(transaction);
         if (!transaction) {
             return res.status(404).json({
@@ -185,25 +193,29 @@ module.exports.updateTransaction = async(req, res) => {
         // if (updates.name) transaction.name = updates.name;
         // if (updates.contact) transaction.contact = Number(updates.contact);
 
-        if (updates.name || updates.contact) {
-            console.log(transaction.technicianDetail._id);
-            const technician = await Technician.findById({_id: transaction.technicianDetail._id});
-            console.log(technician);
-            if (!technician) {
+        if (updates.name || updates.contact || updates.email) {
+            console.log(transaction.servicePerson._id);
+            const servicePerson = await ServicePerson.findById({_id: transaction.servicePerson._id}).session(session);
+            console.log(servicePerson);
+            if (!servicePerson) {
                 return res.status(404).json({
                     success: false,
                     message: "Person not found"
                 });
             }
             if(updates.name){
-                technician.name = updates.name;
+                servicePerson.name = updates.name;
+            }
+
+            if(updates.email){
+                servicePerson.email = updates.email;
             }
             if(updates.contact){
-                const technicianContact = Number(updates.contact);
-                technician.contact = technicianContact;
+                const servicePersonContact = Number(updates.contact);
+                servicePerson.contact = servicePersonContact;
             }
             
-            await technician.save();
+            await servicePerson.save({session});
         }
         
         if (updates.items) {
@@ -212,7 +224,7 @@ module.exports.updateTransaction = async(req, res) => {
             for (const newItem of newItems) {
                 const { itemName, quantity: newQuantity } = newItem;
 
-                const foundItem = await Item.findOne({ itemName });
+                const foundItem = await Item.findOne({ itemName }).session(session);
 
                 if (!foundItem) {
                     return res.status(404).json({
@@ -254,7 +266,7 @@ module.exports.updateTransaction = async(req, res) => {
 
                 // Update stock and save the item
                 foundItem.updatedAt = Date.now();
-                await foundItem.save();
+                await foundItem.save({session});
             }
 
             // Replace old items with new ones
@@ -271,23 +283,29 @@ module.exports.updateTransaction = async(req, res) => {
         }
 
         // Save the updated transaction
-        await transaction.save();
-        const updatedTransaction = await Transaction.findById(id).populate('technicianDetail', 'name contact');
+        await transaction.save({session});
+        const updatedTransaction = await Transaction.findById(id).populate('servicePerson', 'name email contact').session(session);
+        await session.commitTransaction();
         res.status(200).json({
             success: true,
             message: "Transaction updated successfully",
             updatedTransaction
         });
     }catch(error){
+        session.abortTransaction();
         res.status(500).json({
             success: false,
             error: error.message
         });
+    }finally{
+        session.endSession();
     }
 };
 
 //Return Items at Inventory
-module.exports.returnItems = async(req, res) => {
+const returnItems = async(req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     try{
         const {id} = req.query;
         console.log(req.body);
@@ -300,7 +318,7 @@ module.exports.returnItems = async(req, res) => {
             });
         }
 
-        const transaction = await Transaction.findById(id);
+        const transaction = await Transaction.findById(id).session(session);
         if(!transaction){
             return res.status(404).json({
                 success: false,
@@ -310,7 +328,7 @@ module.exports.returnItems = async(req, res) => {
 
         for (const item of itemsToReturn){
             const {itemName , quantity} = item;
-            const foundItem = await Item.findOne({ itemName });
+            const foundItem = await Item.findOne({ itemName }).session(session);
             if (!foundItem) {
                 return res.status(404).json({
                     success: false,
@@ -329,36 +347,33 @@ module.exports.returnItems = async(req, res) => {
             // Update stock
             foundItem.stock += quantity;
             foundItem.updatedAt = Date.now();
-            await foundItem.save();
+            await foundItem.save({session});
 
             // Log the returned item
             transaction.returnedItems.push({ itemName, quantity, returnDate: Date.now() });
-
-            // Update the original transaction
-            // oldItem.quantity -= quantity;
-            // if (oldItem.quantity === 0) {
-            //     transaction.items = transaction.items.filter(item => item.itemName !== itemName);
-            // }
         }
 
         // Save the updated original transaction
-        await transaction.save();
-
+        await transaction.save({session});
+        session.commitTransaction();
         res.status(200).json({
             success: true,
             message: "Items returned successfully",
             transaction
         });
     }catch(error){
+        session.abortTransaction();
         res.status(500).json({
             success: false,
             error: error.message
         });
+    }finally{
+        session.endSession();
     }
 }
 
 //Delete a transaction using ID
-module.exports.deleteTransaction = async(req, res) => {
+const deleteTransaction = async(req, res) => {
     const {id} = req.query;
     if(!id){
         return res.status(400).json({
@@ -391,11 +406,11 @@ module.exports.deleteTransaction = async(req, res) => {
 
 
 
-//Technician Controller
-//Get Specific Transaction of Technician
-module.exports.getTechnicianTransactions = async(req, res) =>{
+//ServicePerson Controller
+//Get Specific Transaction of ServicePerson
+const getServicePersonTransactions = async(req, res) =>{
     try {
-        const transactions = await Transaction.find({ technicianDetail: req.user._id }).populate('technicianDetail');
+        const transactions = await Transaction.find({ servicePerson: req.user._id }).populate('servicePerson');
         if(!transactions){
             return res.status(404).json({
                 success: false,
@@ -416,8 +431,8 @@ module.exports.getTechnicianTransactions = async(req, res) =>{
 };
 
 //Update Status of Transaction
-module.exports.updateTransactionStatus = async(req, res) => {
-    const technicianId = req.user._id;
+const updateTransactionStatus = async(req, res) => {
+    const servicePersonId = req.user._id;
     const {id} = req.query;
     const {newStatus} = req.body;
     if(!id){
@@ -444,7 +459,7 @@ module.exports.updateTransactionStatus = async(req, res) => {
 
         transaction.status = newStatus;
         await transaction.save();
-        const updatedStatus = await Transaction.findById(id).populate('technicianDetail');
+        const updatedStatus = await Transaction.findById(id).populate('servicePerson');
         res.status(200).json({
             success: true,
             message: "Status Updated Successfully",
@@ -457,3 +472,14 @@ module.exports.updateTransactionStatus = async(req, res) => {
         });
     }
 };
+
+module.exports = {
+    addTransaction,
+    viewTransactions,
+    getTransactionByID,
+    updateTransaction,
+    returnItems,
+    deleteTransaction,
+    getServicePersonTransactions,
+    updateTransactionStatus
+}

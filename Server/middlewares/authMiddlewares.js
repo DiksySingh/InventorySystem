@@ -6,11 +6,14 @@ const jwt = require("jsonwebtoken");
 
 module.exports.userVerification = (allowedRoles) => {
     return async (req, res, next) => {
-        const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+        const token = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
         console.log(token);
 
         if (!token) {
-            return res.status(400).json({ status: false, message: "No token provided" });
+            return res.status(400).json({ 
+                status: false, 
+                message: "No token provided" 
+            });
         }
 
         jwt.verify(token, process.env.ACCESS_TOKEN_KEY, async (err, data) => {
@@ -86,14 +89,19 @@ module.exports.refreshToken = async (req, res) => {
                 });
             }
 
-            const { id, role } = decoded;
+            const { id } = decoded;
 
             // Match the refresh token in either User or Technician schema
             let user;
-            if (role === 'serviceperson') {
+            user = await User.findById(id);
+            if (!user) {
                 user = await ServicePerson.findById(id);
-            } else {
-                user = await User.findById(id);
+                if(!user){
+                    return res.status(400).json({
+                        success: false,
+                        message: "User or ServicePerson Not Found"
+                    });
+                }
             }
 
             // Check if the user or serviceperson exists and if the refresh token matches
@@ -106,7 +114,7 @@ module.exports.refreshToken = async (req, res) => {
 
             // Generate new tokens
             const newAccessToken = createSecretToken(user._id, role);
-            const newRefreshToken = createRefreshToken(user._id, role);
+            const newRefreshToken = createRefreshToken(user._id);
 
             // Save the new refresh token to the user's schema
             user.refreshToken = newRefreshToken;

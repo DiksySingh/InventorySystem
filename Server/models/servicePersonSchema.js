@@ -41,5 +41,5 @@ const servicePersonSchema = new Schema({
     }
 }, { collection: 'servicepersons' });
 
-const ServicePerson = mongoose.model("Service_Person", servicePersonSchema);
+const ServicePerson = mongoose.model("ServicePerson", servicePersonSchema);
 module.exports = ServicePerson;
