@@ -17,6 +17,4 @@ router.get("/transactions/view", userVerification(['admin','warehouseAdmin']), g
 router.get("/transactions/transactionDetails", userVerification(['serviceperson']), getServicePersonTransactions);
 router.patch("/transactions/updateStatus", userVerification(['serviceperson']), updateTransactionStatus);
 
-
-
 module.exports = router;
