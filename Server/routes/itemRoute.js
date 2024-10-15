@@ -3,7 +3,7 @@ const {userVerification} = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
 
 //Admin Accessible Route
-router.get("/viewItems", userVerification(['admin']), showItems);
+router.get("/viewItems", userVerification(['admin', 'warehouseAdmin']), showItems);
 
 //Inventory Accessible Route
 router.post("/newItem", userVerification(['warehouseAdmin']), addItem);

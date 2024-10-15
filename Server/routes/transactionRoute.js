@@ -4,7 +4,7 @@ const router = require("express").Router();
 const upload = require("../middlewares/multerConfig");
 
 //Inventory
-router.post("/transactions/newTransaction", userVerification(['warehouseAdmin']), upload.single("videoProof"), addTransaction);
+router.post("/transactions/newTransaction", userVerification(['warehouseAdmin']), upload.single("videoProof"), addTransaction); 
 router.patch("/transactions/update", userVerification(['warehouseAdmin']), upload.single('videoProof'), updateTransaction);
 router.delete("/transactions/delete", userVerification(['warehouseAdmin']), deleteTransaction);
 router.patch("/transactions/return", userVerification(['warehouseAdmin']), returnItems);
