@@ -5,7 +5,6 @@ const router = require("express").Router();
 
 //Inventory
 //upload.single("videoProof")
-//upload.single('videoProof')
 router.post("/transactions/newTransaction", userVerification(['warehouseAdmin']), addTransaction); 
 router.patch("/transactions/update", userVerification(['warehouseAdmin']), updateTransaction);
 router.delete("/transactions/delete", userVerification(['warehouseAdmin']), deleteTransaction);

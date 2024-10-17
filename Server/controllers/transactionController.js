@@ -5,12 +5,13 @@ const ServicePerson = require("../models/servicePersonSchema");
 
 //Add New Transaction
 const addTransaction = async(req, res) => {
-    const session = await mongoose.startSession(); // Start a session
-    session.startTransaction(); // Begin a transaction
     try{
         console.log(req.body);
         const {name, contact, items, transactionDate, warehouse, status} = req.body;
-        let itemsData = JSON.parse(items);
+        console.log(name);
+        console.log(items);
+        let itemsData = items;
+        console.log(itemsData);
         let personContact = Number(contact);
         if(!name || !personContact || !itemsData || !warehouse || !status){
             return res.status(400).json({
@@ -26,7 +27,7 @@ const addTransaction = async(req, res) => {
             });
         }
 
-        let servicePerson = await ServicePerson.findOne({ contact: personContact }).session(session);;
+        let servicePerson = await ServicePerson.findOne({ contact: personContact });
         if (!servicePerson) {
             return res.status(404).json({
                 success: false,
@@ -52,7 +53,7 @@ const addTransaction = async(req, res) => {
                 });
             }
             try{
-                const foundItem = await Item.findOne({ itemName }).session(session);
+                const foundItem = await Item.findOne({ itemName });
                 if (!foundItem) {
                     return res.status(404).json({
                         success: false,
@@ -89,10 +90,7 @@ const addTransaction = async(req, res) => {
             status
         });
         console.log(newTransaction);
-        await newTransaction.save({ session }); // Save with session
-
-        // Commit the transaction
-        await session.commitTransaction();
+        await newTransaction.save(); 
 
         res.status(200).json({
             success: true,
@@ -100,13 +98,10 @@ const addTransaction = async(req, res) => {
             data: newTransaction
         });
     }catch(error){
-        await session.abortTransaction(); // Abort the transaction on error
         res.status(500).json({
             success: false,
             error: error.message
         });
-    }finally {
-        session.endSession(); // End the session
     }
 };
 
@@ -168,8 +163,6 @@ const getTransactionByID = async(req, res) => {
 
 //Update a transaction using ID
 const updateTransaction = async(req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try{
         const {id} = req.query;
         const updates = req.body;
@@ -181,7 +174,7 @@ const updateTransaction = async(req, res) => {
             });
         }
         
-        const transaction = await Transaction.findById(id).populate('servicePerson').session(session);
+        const transaction = await Transaction.findById(id).populate('servicePerson');
         console.log(transaction);
         if (!transaction) {
             return res.status(404).json({
@@ -195,7 +188,7 @@ const updateTransaction = async(req, res) => {
 
         if (updates.name || updates.contact || updates.email) {
             console.log(transaction.servicePerson._id);
-            const servicePerson = await ServicePerson.findById({_id: transaction.servicePerson._id}).session(session);
+            const servicePerson = await ServicePerson.findById({_id: transaction.servicePerson._id});
             console.log(servicePerson);
             if (!servicePerson) {
                 return res.status(404).json({
@@ -215,7 +208,7 @@ const updateTransaction = async(req, res) => {
                 servicePerson.contact = servicePersonContact;
             }
             
-            await servicePerson.save({session});
+            await servicePerson.save();
         }
         
         if (updates.items) {
@@ -224,7 +217,7 @@ const updateTransaction = async(req, res) => {
             for (const newItem of newItems) {
                 const { itemName, quantity: newQuantity } = newItem;
 
-                const foundItem = await Item.findOne({ itemName }).session(session);
+                const foundItem = await Item.findOne({ itemName });
 
                 if (!foundItem) {
                     return res.status(404).json({
@@ -266,7 +259,7 @@ const updateTransaction = async(req, res) => {
 
                 // Update stock and save the item
                 foundItem.updatedAt = Date.now();
-                await foundItem.save({session});
+                await foundItem.save();
             }
 
             // Replace old items with new ones
@@ -283,29 +276,23 @@ const updateTransaction = async(req, res) => {
         // }
 
         // Save the updated transaction
-        await transaction.save({session});
-        const updatedTransaction = await Transaction.findById(id).populate('servicePerson', 'name email contact').session(session);
-        await session.commitTransaction();
+        await transaction.save();
+        const updatedTransaction = await Transaction.findById(id).populate('servicePerson', 'name email contact');
         res.status(200).json({
             success: true,
             message: "Transaction updated successfully",
             updatedTransaction
         });
     }catch(error){
-        session.abortTransaction();
         res.status(500).json({
             success: false,
             error: error.message
         });
-    }finally{
-        session.endSession();
     }
 };
 
 //Return Items at Inventory
 const returnItems = async(req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
     try{
         const {id} = req.query;
         console.log(req.body);
@@ -318,7 +305,7 @@ const returnItems = async(req, res) => {
             });
         }
 
-        const transaction = await Transaction.findById(id).session(session);
+        const transaction = await Transaction.findById(id);
         if(!transaction){
             return res.status(404).json({
                 success: false,
@@ -328,7 +315,7 @@ const returnItems = async(req, res) => {
 
         for (const item of itemsToReturn){
             const {itemName , quantity} = item;
-            const foundItem = await Item.findOne({ itemName }).session(session);
+            const foundItem = await Item.findOne({ itemName });
             if (!foundItem) {
                 return res.status(404).json({
                     success: false,
@@ -347,28 +334,24 @@ const returnItems = async(req, res) => {
             // Update stock
             foundItem.stock += quantity;
             foundItem.updatedAt = Date.now();
-            await foundItem.save({session});
+            await foundItem.save();
 
             // Log the returned item
             transaction.returnedItems.push({ itemName, quantity, returnDate: Date.now() });
         }
 
         // Save the updated original transaction
-        await transaction.save({session});
-        session.commitTransaction();
+        await transaction.save();
         res.status(200).json({
             success: true,
             message: "Items returned successfully",
             transaction
         });
     }catch(error){
-        session.abortTransaction();
         res.status(500).json({
             success: false,
             error: error.message
         });
-    }finally{
-        session.endSession();
     }
 }
 

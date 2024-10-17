@@ -7,12 +7,6 @@ module.exports.createSecretToken = (id, role) => {
     });
 };
 
-// module.exports.createTechnicianToken = (technicianId) => {
-//     return jwt.sign({ id: technicianId }, process.env.ACCESS_TOKEN_KEY, {
-//         expiresIn: 1 * 24 * 60 * 60
-//     });
-// };
-
 module.exports.createRefreshToken = (id) => {
     // Create the refresh token (longer expiry, e.g., 7 days or more)
     return jwt.sign({ id }, process.env.REFRESH_TOKEN_KEY, {
