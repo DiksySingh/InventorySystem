@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 //app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..uploads/videos_proofs')));
 
-aap.get("/", (req, res) => {
+app.get("/", (req, res) => {
     res.send("Working Fine");
 });
 
