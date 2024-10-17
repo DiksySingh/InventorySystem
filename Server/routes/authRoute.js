@@ -3,7 +3,7 @@ const {userVerification, refreshToken} = require("../middlewares/authMiddlewares
 const router = require("express").Router();
 
 router.post("/user-signup",userSignup);
-router.post("/service-person-signup", servicePersonSignup)
+router.post("/service-person-signup", servicePersonSignup);
 router.post("/login", Login);
 router.post("/logout", Logout);
 router.post("/update-password", userVerification(['serviceperson']), updatePassword);
