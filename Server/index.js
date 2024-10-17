@@ -32,6 +32,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 //app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..uploads/videos_proofs')));
 
+aap.get("/", (req, res) => {
+    res.send("Working Fine");
+});
+
 app.use("/user", authRoute);
 app.use("/admin", itemRoute);
 app.use("/admin", transactionRoute);
