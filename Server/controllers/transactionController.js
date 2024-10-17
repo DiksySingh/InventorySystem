@@ -34,14 +34,14 @@ const addTransaction = async(req, res) => {
             });
         }
 
-        if(!req.file){
-            return res.status(400).json({
-                success: false,
-                message: "Video Proof is required"
-            });
-        }
+        // if(!req.file){
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "Video Proof is required"
+        //     });
+        // }
 
-        const videoProof = req.file.path;
+        //const videoProof = req.file.path;
         for (const item of itemsData) {
             const { itemName, quantity } = item;
             console.log(itemName);
@@ -83,7 +83,7 @@ const addTransaction = async(req, res) => {
         const newTransaction = new Transaction({
             servicePerson: servicePerson._id,
             items: itemsData,
-            videoProof,
+            //videoProof,
             transactionDate,
             warehouse,
             status
@@ -277,10 +277,10 @@ const updateTransaction = async(req, res) => {
         if (updates.status) transaction.status = updates.status;
 
         // Check if a new videoProof file is uploaded
-        if (req.file) {
-            const videoProof = req.file.path;
-            transaction.videoProof = videoProof;
-        }
+        // if (req.file) {
+        //     const videoProof = req.file.path;
+        //     transaction.videoProof = videoProof;
+        // }
 
         // Save the updated transaction
         await transaction.save({session});

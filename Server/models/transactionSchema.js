@@ -18,10 +18,10 @@ const transactionSchema = new Schema({
             min: 1
         }
    }],
-   videoProof: {
-        type: String,
-        required: true,
-   },
+//    videoProof: {
+//         type: String,
+//         required: true,
+//    },
    transactionDate: {
        type: Date,
        default: Date.now 
