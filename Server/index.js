@@ -9,7 +9,7 @@ const itemRoute = require("./routes/itemRoute");
 const authRoute = require("./routes/authRoute");
 const transactionRoute = require("./routes/transactionRoute");
 
-const URI = process.env.MONGO_URL;
+const URI = process.env.MONGODB_URL;
 
 main()
     .then(()=>{

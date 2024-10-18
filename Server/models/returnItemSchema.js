@@ -26,5 +26,5 @@ const returnItemSchema = new Schema({
   },
 });
 
-const ReturnItem = mongoose.model("ReturnItem", returnItemSchema);
+const ReturnItem = mongoose.model("InReturnItem", returnItemSchema);
 module.exports = ReturnItem;
