@@ -39,7 +39,7 @@ const servicePersonSchema = new Schema({
         type: String,
         default: null
     }
-}, { collection: 'servicepersons' });
+}, { collection: 'inServicePersons' });
 
-const ServicePerson = mongoose.model("InServicePerson", servicePersonSchema);
+const ServicePerson = mongoose.model("ServicePerson", servicePersonSchema);
 module.exports = ServicePerson;

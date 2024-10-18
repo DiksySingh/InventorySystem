@@ -66,7 +66,7 @@ module.exports.servicePersonSignup = async (req, res) => {
     if (existingServicePerson) {
       res.status(400).json({
         success: false,
-        message: "Technician already exists",
+        message: "Service Person already exists",
       });
     }
 
@@ -83,7 +83,7 @@ module.exports.servicePersonSignup = async (req, res) => {
     await newServicePrson.save();
     res.status(200).json({
       success: true,
-      message: "Technician registered successfully",
+      message: "Service Person registered successfully",
       data: {
         name: newServicePrson.name,
         email: newServicePrson.email,

@@ -92,11 +92,11 @@ module.exports.updateItem = async(req, res) => {
         }
          
         await existingItem.save();
-
+        const updatedItemData = await Item.findById({_id: id});
         res.status(200).json({
             success: true,
             message: "Item updated successfully",
-            item: existingItem,
+            item: updatedItemData,
         });
     }catch(error){
         res.status(500).json({
