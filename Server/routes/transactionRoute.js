@@ -8,7 +8,7 @@ const router = require("express").Router();
 router.post("/transactions/newTransaction", userVerification(['warehouseAdmin']), addTransaction); 
 router.patch("/transactions/update", userVerification(['warehouseAdmin']), updateTransaction);
 router.delete("/transactions/delete", userVerification(['warehouseAdmin']), deleteTransaction);
-router.patch("/transactions/return", userVerification(['warehouseAdmin']), returnItems);
+router.patch("/transactions/returnItems", userVerification(['warehouseAdmin']), returnItems);
 
 //Admin and Inventory Both
 router.get("/transactions/allTransactions", userVerification(['admin','warehouseAdmin']), viewTransactions);
