@@ -10,6 +10,7 @@ const authRoute = require("./routes/authRoute");
 const transactionRoute = require("./routes/transactionRoute");
 
 const URI = process.env.MONGODB_URL;
+const PORT = process.env.PORT;
 
 main()
     .then(()=>{
@@ -43,7 +44,7 @@ app.use("/warehouse-admin", itemRoute);
 app.use("/warehouse-admin", transactionRoute);
 app.use("/service-person", transactionRoute);
 
-app.listen(8080, () => {
+app.listen(PORT, () => {
     console.log("Server running at port 8080");
 });
 
