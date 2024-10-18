@@ -45,6 +45,6 @@ app.use("/warehouse-admin", transactionRoute);
 app.use("/service-person", transactionRoute);
 
 app.listen(PORT, () => {
-    console.log("Server running at port 8080");
+    console.log(`Server running at port ${PORT}`);
 });
 
