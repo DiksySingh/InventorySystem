@@ -1,4 +1,4 @@
-const {addTransaction, viewTransactions,getTransactionByID, updateTransaction, returnItems, deleteTransaction, updateTransactionStatus, getServicePersonTransactions} = require("../controllers/transactionController");
+const {addTransaction, viewTransactions,getTransactionByID, updateTransaction, returnItems, deleteTransaction, updateTransactionStatus, getServicePersonTransactions, servicePersonDashboard} = require("../controllers/transactionController");
 const {userVerification} = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
 //const upload = require("../middlewares/multerConfig");
@@ -15,6 +15,7 @@ router.get("/transactions/allTransactions", userVerification(['admin','warehouse
 router.get("/transactions/view", userVerification(['admin','warehouseAdmin']), getTransactionByID);
 
 //Technician
+router.get("/dashboard", userVerification(['serviceperson']), servicePersonDashboard);
 router.get("/transactions/transactionDetails", userVerification(['serviceperson']), getServicePersonTransactions);
 router.patch("/transactions/updateStatus", userVerification(['serviceperson']), updateTransactionStatus);
 
