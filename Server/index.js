@@ -34,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 //app.use('../uploads/video_proofs', express.static(path.join(__dirname, '..uploads/videos_proofs')));
 
 app.get("/", (req, res) => {
-    res.send("Working Fine");
+    res.send("Server Working Fine");
 });
 
 app.use("/user", authRoute);
