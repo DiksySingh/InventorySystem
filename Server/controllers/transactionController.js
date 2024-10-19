@@ -494,9 +494,18 @@ const getServicePersonTransactions = async (req, res) => {
       });
     }
 
+     const transactionsWithISTDate = transactions.map((transaction) => {
+       return {
+         ...transaction.toObject(), 
+         transactionDate: moment(transaction.transactionDate)
+           .tz("Asia/Kolkata")
+           .format("YYYY-MM-DD HH:mm:ss"), 
+       };
+     });
+
     res.status(200).json({
       success: true,
-      transactions,
+      transaction: transactionsWithISTDate,
     });
   } catch (error) {
     res.status(500).json({
