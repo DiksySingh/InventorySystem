@@ -192,8 +192,8 @@ module.exports.Logout = async (req, res) => {
 
     return res
       .status(200)
-      .clearCookie("accessToken", { httpOnly: true, secure: true })
-      .clearCookie("refreshToken", { httpOnly: true, secure: true })
+      .clearCookie("accessToken", { httpOnly: true, secure: false })
+      .clearCookie("refreshToken", { httpOnly: true, secure: false })
       .json({
         success: true,
         message: "Logged Out Successfully",
