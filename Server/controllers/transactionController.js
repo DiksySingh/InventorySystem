@@ -486,7 +486,7 @@ const getServicePersonTransactions = async (req, res) => {
   try {
     const transactions = await Transaction.find({
       servicePerson: req.user._id,
-    }).populate("servicePerson");
+    }).select("-__v");
     if (!transactions) {
       return res.status(404).json({
         success: false,
@@ -538,9 +538,7 @@ const updateTransactionStatus = async (req, res) => {
       transaction.activity = "Success";
     }
     await transaction.save();
-    const updatedStatus = await Transaction.findById(id).populate(
-      "servicePerson"
-    );
+    const updatedStatus = await Transaction.findById(id).select("-__v");
     res.status(200).json({
       success: true,
       message: "Status Updated Successfully",
