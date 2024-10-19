@@ -179,6 +179,7 @@ module.exports.Login = async (req, res) => {
 
 module.exports.Logout = async (req, res) => {
   try {
+    console.log(req.user);
     const userID = req.user._id; // req.user will contain either User or ServicePerson based on the role
     const role = req.user.role; // Assuming role is set in the token
 
