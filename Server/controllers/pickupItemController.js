@@ -1,10 +1,20 @@
+const moment = require("moment-timezone");
 const PickupItem = require("../models/pickupItemSchema");
 
 //ServicePerson Access
 module.exports.returnItems = async (req, res) => {
   try {
     const id = req.user._id;
-    const { farmerName, farmerContact, farmerVillage, items, warehouse, remark, status, pickupDate } = req.body;
+    const {
+      farmerName,
+      farmerContact,
+      farmerVillage,
+      items,
+      warehouse,
+      remark,
+      status,
+      pickupDate,
+    } = req.body;
     let contact = Number(farmerContact);
     let parsedItems = JSON.parse(items);
 
@@ -21,34 +31,34 @@ module.exports.returnItems = async (req, res) => {
       });
     }
 
-    if(!req.file){
-        return res.status(400).json({
-            success: false,
-            message: "Image is required"
-        });
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Image is required",
+      });
     }
 
     const image = req.file.path;
-    
+
     const returnItems = new PickupItem({
       servicePerson: id,
       farmerName,
       farmerContact: contact,
       farmerVillage,
-      items: parsedItems, 
+      items: parsedItems,
       image,
       warehouse,
       remark: remark || "",
       status: status || false,
-      pickupDate
+      pickupDate,
     });
     console.log(returnItems);
     await returnItems.save();
-    
+
     res.status(200).json({
-        success: true,
-        message: "Data Logged Successfully",
-        returnItems
+      success: true,
+      message: "Data Logged Successfully",
+      returnItems,
     });
   } catch (error) {
     res.status(500).json({
@@ -59,23 +69,24 @@ module.exports.returnItems = async (req, res) => {
   }
 };
 
-module.exports.pickupItemOfServicePerson = async(req, res) => {
-  try{
+module.exports.pickupItemOfServicePerson = async (req, res) => {
+  try {
+    console.log(req.user);
     const id = req.user._id;
-    if(!id){
+    if (!id) {
       return res.status(404).json({
         success: false,
-        message: "User not found"
+        message: "User not found",
       });
     }
 
     const pickupItems = await PickupItem.find({ servicePerson: id }).select(
       "-__v -servicePerson"
     );
-    if(!pickupItems){
+    if (!pickupItems) {
       return res.status(404).json({
         success: false,
-        message: "Data Not Found"
+        message: "Data Not Found",
       });
     }
 
@@ -91,17 +102,16 @@ module.exports.pickupItemOfServicePerson = async(req, res) => {
     res.status(200).json({
       success: true,
       message: "Data Fetched Successfully",
-      pickupItemsDetail
+      pickupItemsDetail,
     });
-
-  }catch(error){
+  } catch (error) {
     res.status(500).json({
       success: false,
       message: "Internal Server Error",
-      error: error.message
+      error: error.message,
     });
   }
-}
+};
 
 //Warehouse Access
 module.exports.getPickupItems = async (req, res) => {
@@ -109,11 +119,11 @@ module.exports.getPickupItems = async (req, res) => {
     const pickupItems = await PickupItem.find().populate(
       "servicePerson",
       "name, contact"
-    ); 
-    if(!pickupItems){
+    );
+    if (!pickupItems) {
       return res.status(404).json({
         success: false,
-        message: "Data Not Found"
+        message: "Data Not Found",
       });
     }
 
