@@ -4,8 +4,7 @@ const fs = require("fs/promises"); // Use fs/promises for promise-based file ope
 const sharp = require("sharp"); // Use sharp for image processing
 
 const getCurrentDate = () => {
-  const date = new Date();
-  return date.toISOString().split("T")[0].replace(/-/g, "");
+  return Date.now().toString();
 };
 
 const storage = multer.diskStorage({
@@ -21,7 +20,7 @@ const storage = multer.diskStorage({
   filename: (req, file, cb) => {
     const currentDate = getCurrentDate();
     const fileExtension = path.extname(file.originalname).toLowerCase();
-    cb(null, `${currentDate}_${file.originalname}`);
+    cb(null, `${currentDate}${fileExtension}`);
   },
 });
 

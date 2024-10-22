@@ -37,8 +37,8 @@ module.exports.returnItems = async (req, res) => {
         message: "Image is required",
       });
     }
-
-    const image = req.file.path;
+    console.log(req.file);
+    const image = req.file.filename;
 
     const returnItems = new PickupItem({
       servicePerson: id,
