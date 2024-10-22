@@ -118,7 +118,7 @@ module.exports.getPickupItems = async (req, res) => {
   try {
     const pickupItems = await PickupItem.find().populate(
       "servicePerson",
-      "name, contact"
+      "-_id name contact"
     );
     if (!pickupItems) {
       return res.status(404).json({

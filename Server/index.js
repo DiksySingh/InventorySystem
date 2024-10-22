@@ -32,7 +32,10 @@ app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('../uploads/images', express.static(path.join(__dirname, '..uploads/images')));
+app.use(
+  "../uploads/images",
+  express.static(path.join(__dirname, "uploads", "images"))
+);
 
 app.get("/", (req, res) => {
     res.send("Server Working Fine");
