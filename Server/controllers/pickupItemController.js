@@ -6,6 +6,8 @@ const TotalOrderDetails = require("../models/servicePersonOrderDetails");
 //ServicePerson Access
 module.exports.returnItems = async (req, res) => {
   try {
+    console.log("file:", req.file);
+    console.log(req.body);
     const id = req.user._id;
     const {
       farmerName,
@@ -17,6 +19,7 @@ module.exports.returnItems = async (req, res) => {
       status,
       pickupDate,
     } = req.body;
+
     let contact = Number(farmerContact);
     let parsedItems = JSON.parse(items);
 
@@ -33,14 +36,13 @@ module.exports.returnItems = async (req, res) => {
       });
     }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Image is required",
-      });
-    }
-    console.log(req.file);
-    const image = req.file.filename;
+    // if (!req.file) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Image is required",
+    //   });
+    // }
+    // const image = req.file.filename;
 
     const returnItems = new PickupItem({
       servicePerson: id,
@@ -48,13 +50,12 @@ module.exports.returnItems = async (req, res) => {
       farmerContact: contact,
       farmerVillage,
       items: parsedItems,
-      image,
+      // image,
       warehouse,
       remark: remark || "",
       status: status || false,
       pickupDate,
     });
-    console.log(returnItems);
     await returnItems.save();
 
     res.status(200).json({
@@ -142,7 +143,6 @@ module.exports.getPickupItems = async (req, res) => {
   }
 };
 
-
 module.exports.servicePersonDashboard = async (req, res) => {
   try {
     const items = await Item.find();
@@ -159,7 +159,7 @@ module.exports.servicePersonDashboard = async (req, res) => {
 
     const itemValues = {};
 
-   allPickupDetails.forEach((pickupItem) => {
+    allPickupDetails.forEach((pickupItem) => {
       const pickupItems = pickupItem.items;
 
       pickupItems.forEach((item) => {

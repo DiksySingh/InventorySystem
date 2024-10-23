@@ -35,7 +35,6 @@ const pickupItemSchema = new Schema(
     ],
     image: {
       type: String,
-      required: true,
     },
     warehouse: {
       type: String,
