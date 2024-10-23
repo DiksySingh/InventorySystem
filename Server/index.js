@@ -14,31 +14,37 @@ const URI = process.env.MONGODB_URL;
 const PORT = process.env.PORT;
 
 main()
-    .then(()=>{
-        console.log("Connected to MongoDB");
-    })
-    .catch((err) => {
-        console.log(err);
-    })
+  .then(() => {
+    console.log("Connected to MongoDB");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
 
 async function main() {
-    await mongoose.connect(URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
+  await mongoose.connect(URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 }
 
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// app.use(
+//   "../uploads/images",
+//   express.static(path.join(__dirname, "uploads", "images"))
+// );
+
+// by shiv
 app.use(
-  "../uploads/images",
-  express.static(path.join(__dirname, "uploads", "images"))
+  "/uploads/images",
+  express.static(path.join(__dirname, "uploads/images"))
 );
 
 app.get("/", (req, res) => {
-    res.send("Server Working Fine");
+  res.send("Server Working Fine");
 });
 
 app.use("/user", authRoute);
@@ -51,6 +57,5 @@ app.use("/warehouse-admin", pickupItemRoute);
 app.use("/service-person", pickupItemRoute);
 
 app.listen(PORT, () => {
-    console.log(`Server running at port ${PORT}`);
+  console.log(`Server running at port ${PORT}`);
 });
-

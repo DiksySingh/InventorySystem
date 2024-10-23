@@ -15,7 +15,7 @@ router.get("/transactions/allTransactions", userVerification(['admin','warehouse
 router.get("/transactions/view", userVerification(['admin','warehouseAdmin']), getTransactionByID);
 
 //Technician
-router.get("/dashboard", userVerification(['serviceperson']), servicePersonDashboard);
+
 router.get("/transactions/transactionDetails", userVerification(['serviceperson']), getServicePersonTransactions);
 router.patch("/transactions/updateStatus", userVerification(['serviceperson']), updateTransactionStatus);
 

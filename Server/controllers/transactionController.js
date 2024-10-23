@@ -429,56 +429,56 @@ const deleteTransaction = async (req, res) => {
 
 //ServicePerson Controller
 //Dashboard API
-const servicePersonDashboard = async (req, res) => {
-  try {
-    const items = await Item.find();
-    if (!items) {
-      return res.status(404).json({
-        success: false,
-        message: "Items Data Not Found",
-      });
-    }
+// const servicePersonDashboard = async (req, res) => {
+//   try {
+//     const items = await Item.find();
+//     if (!items) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Items Data Not Found",
+//       });
+//     }
 
-    const transactions = await Transaction.find({
-      servicePerson: req.user._id,
-    });
+//     const transactions = await Transaction.find({
+//       servicePerson: req.user._id,
+//     });
 
-   const itemValues = {};
+//    const itemValues = {};
 
 
-   transactions.forEach((transaction) => {
-     const transactionItems = transaction.items; 
+//    transactions.forEach((transaction) => {
+//      const transactionItems = transaction.items; 
 
-     transactionItems.forEach((item) => {
-       const itemName = item.itemName; 
-       const itemValue = item.quantity; 
+//      transactionItems.forEach((item) => {
+//        const itemName = item.itemName; 
+//        const itemValue = item.quantity; 
 
-       if (itemValues[itemName]) {
-         itemValues[itemName] += itemValue; 
-       } else {
-         itemValues[itemName] = itemValue; 
-       }
-     });
-   });
+//        if (itemValues[itemName]) {
+//          itemValues[itemName] += itemValue; 
+//        } else {
+//          itemValues[itemName] = itemValue; 
+//        }
+//      });
+//    });
   
-   const itemsData = items.map((item) => ({
-     name: item.itemName,
-     value: itemValues[item.itemName] || 0, 
-   }));
+//    const itemsData = items.map((item) => ({
+//      name: item.itemName,
+//      value: itemValues[item.itemName] || 0, 
+//    }));
 
-    res.status(200).json({
-      success: true,
-      message: "Items Fetched Successfully",
-      data: itemsData,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Internal Server Error",
-      error: error.message,
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       message: "Items Fetched Successfully",
+//       data: itemsData,
+//     });
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error",
+//       error: error.message,
+//     });
+//   }
+// };
 
 
 //Get Specific Transaction of ServicePerson
@@ -570,7 +570,6 @@ module.exports = {
   updateTransaction,
   returnItems,
   deleteTransaction,
-  servicePersonDashboard,
   getServicePersonTransactions,
   updateTransactionStatus,
 };
