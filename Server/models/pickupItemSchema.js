@@ -35,10 +35,15 @@ const pickupItemSchema = new Schema(
     ],
     image: {
       type: String,
+      default: null
     },
     warehouse: {
       type: String,
       required: true,
+    },
+    serialNumber: {
+      type: String,
+      required: true
     },
     remark: {
       type: String,

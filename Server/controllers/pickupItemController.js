@@ -6,7 +6,6 @@ const TotalOrderDetails = require("../models/servicePersonOrderDetails");
 //ServicePerson Access
 module.exports.returnItems = async (req, res) => {
   try {
-    console.log("file:", req.file);
     console.log(req.body);
     const id = req.user._id;
     const {
@@ -15,43 +14,51 @@ module.exports.returnItems = async (req, res) => {
       farmerVillage,
       items,
       warehouse,
+      serialNumber,
       remark,
       status,
       pickupDate,
     } = req.body;
 
     let contact = Number(farmerContact);
-    let parsedItems = JSON.parse(items);
+    //let parsedItems = JSON.parse(items);
 
-    if (!farmerName || !contact || !farmerVillage || !items || !warehouse) {
+    if (
+      !farmerName ||
+      !contact ||
+      !farmerVillage ||
+      !items ||
+      !warehouse ||
+      !serialNumber
+    ) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
       });
     }
-    if (!Array.isArray(parsedItems) || parsedItems.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Items must be a non-empty array",
       });
     }
 
-    if (!req.file) {
-      return res.status(400).json({
-        success: false,
-        message: "Image is required",
-      });
-    }
-    const image = req.file.filename;
+    // if (!req.file) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Image is required",
+    //   });
+    // }
+    // const image = req.file.filename;
 
     const returnItems = new PickupItem({
       servicePerson: id,
       farmerName,
       farmerContact: contact,
       farmerVillage,
-      items: parsedItems,
-      image,
+      items,
       warehouse,
+      serialNumber,
       remark: remark || "",
       status: status || false,
       pickupDate,
@@ -119,21 +126,25 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
 //Warehouse Access
 module.exports.getPickupItems = async (req, res) => {
   try {
-    //By Shiv
-
     const pickupItems = await PickupItem.find()
-      .populate("servicePerson", " _id name contact") // Assuming you have a reference model for ServicePerson
-      .exec();
+      .populate("servicePerson", "_id name contact "); // Assuming you have a reference model for ServicePerson
 
-    // Modify the result to include the full URL of the image
-    const itemsWithImageUrl = pickupItems.map((item) => ({
-      ...item.toObject(), // Convert to plain object to modify the response
-      imageUrl: `${req.protocol}://${req.get("host")}/uploads/images/${
-        item.image
-      }`, // Construct image URL
-    }));
 
-    res.status(200).json(itemsWithImageUrl);
+    // // Modify the result to include the full URL of the image
+    // const itemsWithImageUrl = pickupItems.map((item) => ({
+    //   ...item.toObject(), // Convert to plain object to modify the response
+    //   imageUrl: `${req.protocol}://${req.get("host")}/uploads/images/${
+    //     item.image
+    //   }`, // Construct image URL
+    // }));
+
+    //res.status(200).json(itemsWithImageUrl);
+
+    res.status(200).json({
+      success: true,
+      message: "Data Fetched Successfully",
+      pickupItems,
+    });
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -181,10 +192,7 @@ module.exports.servicePersonDashboard = async (req, res) => {
 
     const orderDetails = {
       servicePerson: req.user._id,
-      items: Object.keys(itemValues).map((itemName) => ({
-        itemName,
-        quantity: itemValues[itemName],
-      })),
+      items: itemsData, // Include all items, with 0 for not picked-up items
     };
 
     // Upsert (insert if not exists, update if exists) the order totals for the service person
