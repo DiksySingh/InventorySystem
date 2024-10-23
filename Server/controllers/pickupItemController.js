@@ -36,13 +36,13 @@ module.exports.returnItems = async (req, res) => {
       });
     }
 
-    // if (!req.file) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Image is required",
-    //   });
-    // }
-    // const image = req.file.filename;
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Image is required",
+      });
+    }
+    const image = req.file.filename;
 
     const returnItems = new PickupItem({
       servicePerson: id,
@@ -50,7 +50,7 @@ module.exports.returnItems = async (req, res) => {
       farmerContact: contact,
       farmerVillage,
       items: parsedItems,
-      // image,
+      image,
       warehouse,
       remark: remark || "",
       status: status || false,
