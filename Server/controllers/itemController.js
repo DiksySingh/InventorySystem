@@ -161,7 +161,29 @@ module.exports.incomingItems = async (req, res) => {
 };
 
 
-//module.exports.incomingItemDetails = async(req,)
+module.exports.incomingItemDetails = async(req, res) => {
+    try{
+        const itemDetails = await IncomingItem.find();
+        if(!itemDetails){
+            return res.status(404).json({
+                success: false,
+                message: "Data Not Found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Data Fetched Successfully",
+            itemDetails
+        });
+    }catch(error){
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+};
 
 
 
