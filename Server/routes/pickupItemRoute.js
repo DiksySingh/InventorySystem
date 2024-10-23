@@ -2,7 +2,8 @@ const {
   returnItems,
   getPickupItems,
   pickupItemOfServicePerson,
-  servicePersonDashboard
+  servicePersonDashboard,
+  updateOrderStatus
 } = require("../controllers/pickupItemController");
 const { userVerification } = require("../middlewares/authMiddlewares");
 const router = require("express").Router();
@@ -30,6 +31,12 @@ router.get(
   "/view-pickup-items",
   userVerification(["serviceperson"]),
   pickupItemOfServicePerson
+);
+
+router.put(
+  "/update-status",
+  userVerification(["warehouseAdmin"]),
+  updateOrderStatus
 );
 
 module.exports = router;
