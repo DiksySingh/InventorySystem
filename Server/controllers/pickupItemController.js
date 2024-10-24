@@ -168,6 +168,7 @@ module.exports.servicePersonDashboard = async (req, res) => {
 
     const allPickupDetails = await PickupItem.find({
       servicePerson: req.user._id,
+      status: false,
     });
 
     const itemValues = {};
