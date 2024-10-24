@@ -1,6 +1,8 @@
 const moment = require("moment-timezone");
 const Item = require("../models/itemSchema");
 const PickupItem = require("../models/pickupItemSchema");
+const OutgoingItem = require("../models/outgoingItemSchema");
+const OutgoingItemDetails = require("../models/outgoingItemsTotal");
 const TotalOrderDetails = require("../models/servicePersonOrderDetails");
 const { json } = require("express");
 
@@ -18,20 +20,13 @@ module.exports.returnItems = async (req, res) => {
       serialNumber,
       remark,
       status,
+      incoming,
       pickupDate,
     } = req.body;
 
     let contact = Number(farmerContact);
-    //let parsedItems = JSON.parse(items);
 
-    if (
-      !farmerName ||
-      !contact ||
-      !farmerVillage ||
-      !items ||
-      !warehouse ||
-      !serialNumber
-    ) {
+    if (!farmerName || !contact || !farmerVillage || !items || !warehouse || !serialNumber) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
@@ -42,6 +37,37 @@ module.exports.returnItems = async (req, res) => {
         success: false,
         message: "Items must be a non-empty array",
       });
+    }
+
+    if(incoming === false){
+       for (let item of items) {
+         const itemName = item.itemName;
+         const quantityToDecrease = item.quantity;
+
+         // Find the corresponding item in the Item schema
+         const itemRecord = await Item.findOne({ itemName });
+
+         if (!itemRecord) {
+           return res.status(404).json({
+             success: false,
+             message: `Item ${itemName} not found in inventory`,
+           });
+         }
+
+         // Check if there is enough stock
+         if (itemRecord.stock < quantityToDecrease) {
+           return res.status(400).json({
+             success: false,
+             message: `Not enough stock for item ${itemName}`,
+           });
+         }
+
+         // Decrease the stock
+         itemRecord.stock -= quantityToDecrease;
+
+         // Save the updated item record
+         await itemRecord.save();
+       }
     }
 
     // if (!req.file) {
@@ -62,6 +88,7 @@ module.exports.returnItems = async (req, res) => {
       serialNumber,
       remark: remark || "",
       status: status || false,
+      incoming,
       pickupDate,
     });
     await returnItems.save();
@@ -124,15 +151,8 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
   }
 };
 
-//Warehouse Access
-module.exports.getPickupItems = async (req, res) => {
-  try {
-    const pickupItems = await PickupItem.find().populate(
-      "servicePerson",
-      "_id name contact "
-    ); // Assuming you have a reference model for ServicePerson
 
-    // // Modify the result to include the full URL of the image
+ // // Modify the result to include the full URL of the image
     // const itemsWithImageUrl = pickupItems.map((item) => ({
     //   ...item.toObject(), // Convert to plain object to modify the response
     //   imageUrl: `${req.protocol}://${req.get("host")}/uploads/images/${
@@ -141,6 +161,13 @@ module.exports.getPickupItems = async (req, res) => {
     // }));
 
     //res.status(200).json(itemsWithImageUrl);
+
+//Warehouse Access
+module.exports.getPickupItems = async (req, res) => {
+  try {
+    const pickupItems = await PickupItem.find()
+      .populate("servicePerson", "_id name contact ")
+      .sort({ pickupDate: -1 }); 
 
     res.status(200).json({
       success: true,
@@ -171,7 +198,13 @@ module.exports.servicePersonDashboard = async (req, res) => {
       status: false,
     });
 
+    const allOutgoingItemDetails = await OutgoingItem.find({
+      servicePerson: req.user._id,
+      status: false,
+    })
+ 
     const itemValues = {};
+    const itemValues2 = {};
 
     allPickupDetails.forEach((pickupItem) => {
       const pickupItems = pickupItem.items;
@@ -188,15 +221,41 @@ module.exports.servicePersonDashboard = async (req, res) => {
       });
     });
 
+    allOutgoingItemDetails.forEach((outgoingItem) => {
+      const outgoingItems = outgoing.items;
+
+      outgoingItems.forEach((item) => {
+        const itemName = item.itemName;
+        const itemValue = item.quantity;
+
+        if (itemValues2[itemName]) {
+          itemValues2[itemName] += itemValue;
+        } else {
+          itemValues2[itemName] = itemValue;
+        }
+      });
+    });
+
+
     const itemsData = items.map((item) => ({
       itemName: item.itemName,
       quantity: itemValues[item.itemName] || 0,
+    }));
+
+    const itemsData2 = items.map((item) => ({
+      itemName: item.itemName,
+      quantity: itemValues2[item.itemName] || 0,
     }));
 
     const orderDetails = {
       servicePerson: req.user._id,
       items: itemsData, // Include all items, with 0 for not picked-up items
     };
+
+    const orderDetails2 = {
+      servicePerson: req.user._id,
+      items: itemsData2
+    }
 
     // Upsert (insert if not exists, update if exists) the order totals for the service person
     const result = await TotalOrderDetails.findOneAndUpdate(
@@ -205,10 +264,17 @@ module.exports.servicePersonDashboard = async (req, res) => {
       { upsert: true, new: true }
     );
 
+    const result2 = await OutgoingItemDetails.findOneAndUpdate(
+      {servicePerson: req.user._id },
+      orderDetails2,
+      { upsert: true, new: true}
+    )
+
     res.status(200).json({
       success: true,
       message: "Items Fetched Successfully",
       data: result,
+      outgoing: result2
     });
   } catch (error) {
     res.status(500).json({
@@ -286,7 +352,7 @@ module.exports.updateOrderStatus = async (req, res) => {
       return res.status(200).json({
         success: true,
         message:
-          "PickupItem status updated and quantities adjusted successfully",
+          "Status updated and quantities adjusted successfully",
         pickupItem,
         orderDetails,
       });

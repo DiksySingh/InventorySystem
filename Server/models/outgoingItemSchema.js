@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const pickupItemSchema = new Schema(
+const outgoingItemSchema = new Schema(
   {
     servicePerson: {
       type: Schema.Types.ObjectId,
@@ -35,7 +35,7 @@ const pickupItemSchema = new Schema(
     ],
     image: {
       type: String,
-      default: null
+      default: null,
     },
     warehouse: {
       type: String,
@@ -43,26 +43,22 @@ const pickupItemSchema = new Schema(
     },
     serialNumber: {
       type: String,
-      required: true
+      required: true,
     },
     remark: {
       type: String,
     },
     status: {
       type: Boolean,
-      default: false
-    },
-    incoming: {
-      type: Boolean,
-      default: null
+      default: false,
     },
     pickupDate: {
       type: Date,
       default: Date.now,
     },
   },
-  { collection: "inPickupItems" }
+  { collection: "inOutgoingItems" }
 );
 
-const PickupItem = mongoose.model("InPickupItem", pickupItemSchema);
-module.exports = PickupItem;
+const OutgoingItem = mongoose.model("OutgoingItem", outgoingItemSchema);
+module.exports = OutgoingItem;

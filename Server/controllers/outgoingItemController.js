@@ -1,112 +1,108 @@
 const moment = require("moment-timezone");
 const Item = require("../models/itemSchema");
-const Transaction = require("../models/transactionSchema");
+const OutgoingItem = require("../models/outgoingItemSchema");
 const ServicePerson = require("../models/servicePersonSchema");
-const ReturnItem = require("../models/returnItemSchema");
 
-//Add New Transaction
-const addTransaction = async (req, res) => {
+//Service Person: Add Outgoing Item Data
+const addOutgoingTransaction = async (req, res) => {
   try {
     console.log(req.body);
-    const { name, contact, items, transactionDate, warehouse, status } =
-      req.body;
-    console.log(name);
-    console.log(items);
-    let itemsData = items;
-    console.log(itemsData);
-    let personContact = Number(contact);
-    if (!name || !personContact || !itemsData || !warehouse || !status) {
+    const id = req.user._id;
+    const {
+      farmerName,
+      farmerContact,
+      farmerVillage,
+      items,
+      warehouse,
+      serialNumber,
+      remark,
+      status,
+      pickupDate,
+    } = req.body;
+
+    let contact = Number(farmerContact);
+    //let parsedItems = JSON.parse(items);
+
+    if (
+      !farmerName ||
+      !contact ||
+      !farmerVillage ||
+      !items ||
+      !warehouse ||
+      !serialNumber
+    ) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
       });
     }
-
-    if (!Array.isArray(itemsData) || itemsData.length === 0) {
+    if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Items must be a non-empty array",
       });
     }
 
-    let servicePerson = await ServicePerson.findOne({ contact: personContact });
-    if (!servicePerson) {
-      return res.status(404).json({
-        success: false,
-        message: "servicePerson not found",
-      });
-    }
-
-    // if(!req.file){
-    //     return res.status(400).json({
-    //         success: false,
-    //         message: "Video Proof is required"
-    //     });
+    // if (!req.file) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Image is required",
+    //   });
     // }
+    // const image = req.file.filename;
 
-    //const videoProof = req.file.path;
-    for (const item of itemsData) {
-      const { itemName, quantity } = item;
-      console.log(itemName);
-      if (!itemName || !quantity) {
-        return res.status(400).json({
-          success: false,
-          message: "itemName and quantity is required",
-        });
-      }
-      try {
-        const foundItem = await Item.findOne({ itemName });
-        if (!foundItem) {
-          return res.status(404).json({
-            success: false,
-            message: `Item ${itemName} not found`,
-          });
-        }
+     for (let item of items) {
+       const itemName = item.itemName;
+       const quantityToDecrease = item.quantity;
 
-        // Check if sufficient stock is available
-        if (foundItem.stock < quantity) {
-          return res.status(400).json({
-            success: false,
-            message: `Not enough stock for ${itemName}`,
-          });
-        }
+       // Find the corresponding item in the Item schema
+       const itemRecord = await Item.findOne({ itemName });
 
-        // Update stock and update time
-        foundItem.stock -= quantity;
-        foundItem.updatedAt = Date.now();
-        await foundItem.save();
-      } catch (error) {
-        return res.status(500).json({
-          success: false,
-          message: `Error: ${error.message}`,
-        });
-      }
-    }
-    let setActivity;
-    if (status === "OUT") {
-      setActivity = "In Progress";
-    }
+       if (!itemRecord) {
+         return res.status(404).json({
+           success: false,
+           message: `Item ${itemName} not found in inventory`,
+         });
+       }
 
-    const newTransaction = new Transaction({
-      servicePerson: servicePerson._id,
-      items: itemsData,
-      //videoProof,
-      transactionDate,
+       // Check if there is enough stock
+       if (itemRecord.stock < quantityToDecrease) {
+         return res.status(400).json({
+           success: false,
+           message: `Not enough stock for item ${itemName}`,
+         });
+       }
+
+       // Decrease the stock
+       itemRecord.stock -= quantityToDecrease;
+
+       // Save the updated item record
+       await itemRecord.save();
+     }
+
+    const returnItems = new OutgoingItem({
+      servicePerson: id,
+      farmerName,
+      farmerContact: contact,
+      farmerVillage,
+      items,
       warehouse,
-      status,
-      activity: setActivity,
+      serialNumber,
+      remark: remark || "",
+      status: status || false,
+      pickupDate,
     });
-    console.log(newTransaction);
-    await newTransaction.save();
+    await returnItems.save();
 
     res.status(200).json({
       success: true,
-      message: "Transaction Created Successfully",
-      data: newTransaction,
+      message: "Data Logged Successfully",
+      returnItems,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
+      message: "Internal Server Error",
       error: error.message,
     });
   }
@@ -564,7 +560,7 @@ const updateTransactionStatus = async (req, res) => {
 };
 
 module.exports = {
-  addTransaction,
+  addOutgoingTransaction,
   viewTransactions,
   getTransactionByID,
   updateTransaction,
