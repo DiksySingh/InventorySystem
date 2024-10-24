@@ -218,146 +218,148 @@ module.exports.servicePersonDashboard = async (req, res) => {
   }
 };
 
-// module.exports.updateOrderStatus = async (req, res) => {
-//   try {
-//     const { status, pickupItemId } = req.body;
-
-//     // Step 1: Check if status is true
-//     if (status == true) {
-//       // Step 2: Find the PickupItem by ID
-//       const pickupItem = await PickupItem.findById(pickupItemId);
-//       if (!pickupItem) {
-//         return res.status(404).json({
-//           success: false,
-//           message: "PickupItem not found",
-//         });
-//       }
-
-//       // Step 3: Update the status of PickupItem to true
-//       pickupItem.status = true;
-//       //await pickupItem.save();
-
-//       const itemsToUpdate = pickupItem.items;
-//       const servicePersonId = pickupItem.servicePerson;
-//       const orderDetails = await TotalOrderDetails.findOne({
-//         servicePerson: servicePersonId,
-//       });
-//       if (!orderDetails) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "TotalOrderDetails Not Found",
-//         });
-//       }
-
-//       for (let item of itemsToUpdate) {
-//         const matchingItem = orderDetails.items.find(
-//           (i) => i.itemName === item.itemName
-//         );
-//         if (!matchingItem) {
-//           return res.status(404).json({
-//             success: false,
-//             message: `Item ${item.itemName} not found in TotalOrderDetails`,
-//           });
-//         }
-//         console.log("match", matchingItem.quantity);
-//         console.log("item", item.quantity);
-//         // Check if the quantity is enough to be decremented
-//         if (matchingItem.quantity < item.quantity) {
-//           return res.status(400).json({
-//             success: false,
-//             message: `Not enough stock for ${item.itemName}. Available: ${matchingItem.quantity}, Requested: ${item.quantity}`,
-//           });
-//         }
-
-//         if (matchingItem.quantity === item.quantity) {
-//           matchingItem.quantity = 0; // Set to zero if it matches exactly
-//         } else {
-//           matchingItem.quantity -= item.quantity; // Otherwise, just decrease the quantity
-//         }
-//       }
-//       console.log(orderDetails);
-//       // Save the updated TotalOrderDetails after modifying quantities
-//       await orderDetails.save();
-
-//       // Return success response
-//       return res.status(200).json({
-//         success: true,
-//         message:
-//           "PickupItem status updated and quantities adjusted successfully",
-//         pickupItem,
-//         orderDetails,
-//       });
-//     } else {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Invalid status value",
-//       });
-//     }
-//   } catch (error) {
-//     return res.status(500).json({
-//       success: false,
-//       message: "Internal Server Error",
-//       error: error.message,
-//     });
-//   }
-// };
 
 module.exports.updateOrderStatus = async (req, res) => {
   try {
     const { status, pickupItemId } = req.body;
-    const pickupData = await PickupItem.findById(pickupItemId);
-    if (!pickupData) {
+    console.log("Body", req.body);
+
+    if (status === true) {
+      const pickupItem = await PickupItem.findById(pickupItemId);
+      console.log("pickup", pickupItem);
+      if (!pickupItem) {
+        return res.status(404).json({
+          success: false,
+          message: "PickupItem not found",
+        });
+      }
+
+      pickupItem.status = true;
+
+      const itemsToUpdate = pickupItem.items;
+      const servicePersonId = pickupItem.servicePerson;
+
+      const orderDetails = await TotalOrderDetails.findOne({
+        servicePerson: servicePersonId,
+      });
+      console.log("orderdetils",orderDetails);
+      if (!orderDetails) {
+        return res.status(400).json({
+          success: false,
+          message: "TotalOrderDetails not found for the service person",
+        });
+      }
+
+      for (let item of itemsToUpdate) {
+        console.log("Item",item)
+        const matchingItem = orderDetails.items.find(
+          (i) => i.itemName === item.itemName
+        );
+        console.log("matching",matchingItem);
+
+        if (!matchingItem) {
+          return res.status(404).json({
+            success: false,
+            message: `Item ${item.itemName} not found in TotalOrderDetails`,
+          });
+        }
+
+        if (matchingItem.quantity < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Not enough quantity for ${item.itemName}`,
+          });
+        }
+
+        if (matchingItem.quantity === item.quantity) {
+          matchingItem.quantity = 0;
+        } else {
+          matchingItem.quantity -= item.quantity;
+        }
+      }
+
+      await orderDetails.save();
+
+      await pickupItem.save();
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "PickupItem status updated and quantities adjusted successfully",
+        pickupItem,
+        orderDetails,
+      });
+    } else {
       return res.status(400).json({
         success: false,
-        message: "no data found by pickup id",
+        message: "Invalid status value",
       });
-    }
-    // console.log(pickupData);
-    const itemData = pickupData.items;
-    const servicePersonID = pickupData.servicePerson.toString();
-    // console.log(itemData);
-    for (let item of itemData) {
-      console.log(item.itemName);
-
-      const serviceOrder = await TotalOrderDetails.findOne({
-        $and: [
-          { servicePerson: servicePersonID },
-          { "items.itemName": item.itemName },
-        ],
-      }).exec();
-
-
-      ///
-      const filteredOrderDetails = orderDetails.map((order) => {
-      const matchingItems = order.items.filter(
-        (item) => item.itemName === itemName
-      );
-
-      return {
-        _id: order._id,
-        servicePerson: order.servicePerson,
-        items: matchingItems, // Only return the matching items
-      };
-      });
-      console.log("SO", serviceOrder);
-      // if (serviceOrder) {
-      //   await TotalOrderDetails.updateOne(
-      //     {
-      //       servicePerson: serviceId,
-      //       "items.itemName": itemName,
-      //     },
-      //     {
-      //       $set: {
-      //         "items.$.quantity": quantity,
-      //       },
-      //     }
-      //   );
-      // }
     }
   } catch (error) {
-    return res.status(400).json({
+    return res.status(500).json({
       success: false,
-      message: error,
+      message: "Internal Server Error",
+      error: error.message,
     });
   }
 };
+
+// module.exports.updateOrderStatus = async (req, res) => {
+//   try {
+//     const { status, pickupItemId } = req.body;
+//     const pickupData = await PickupItem.findById(pickupItemId);
+//     if (!pickupData) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "no data found by pickup id",
+//       });
+//     }
+//     // console.log(pickupData);
+//     const itemData = pickupData.items;
+//     const servicePersonID = pickupData.servicePerson.toString();
+//     // console.log(itemData);
+//     for (let item of itemData) {
+//       console.log(item.itemName);
+
+//       const serviceOrder = await TotalOrderDetails.findOne({
+//         $and: [
+//           { servicePerson: servicePersonID },
+//           { "items.itemName": item.itemName },
+//         ],
+//       }).exec();
+
+
+//       ///
+//       const filteredOrderDetails = orderDetails.map((order) => {
+//       const matchingItems = order.items.filter(
+//         (item) => item.itemName === itemName
+//       );
+
+//       return {
+//         _id: order._id,
+//         servicePerson: order.servicePerson,
+//         items: matchingItems, // Only return the matching items
+//       };
+//       });
+//       console.log("SO", serviceOrder);
+//       // if (serviceOrder) {
+//       //   await TotalOrderDetails.updateOne(
+//       //     {
+//       //       servicePerson: serviceId,
+//       //       "items.itemName": itemName,
+//       //     },
+//       //     {
+//       //       $set: {
+//       //         "items.$.quantity": quantity,
+//       //       },
+//       //     }
+//       //   );
+//       // }
+//     }
+//   } catch (error) {
+//     return res.status(400).json({
+//       success: false,
+//       message: error,
+//     });
+//   }
+// };
