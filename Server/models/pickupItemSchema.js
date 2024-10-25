@@ -50,7 +50,7 @@ const pickupItemSchema = new Schema(
     },
     status: {
       type: Boolean,
-      default: false
+      default: null
     },
     incoming: {
       type: Boolean,

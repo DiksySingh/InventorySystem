@@ -19,7 +19,7 @@ const servicePersonOrderDetails = new Schema(
       },
     ],
   },
-  { collection: "inTotalOrderDetails" }
+  { collection: "inTotalIncomingItemsDetails" }
 );
 
 const TotalOrderDetails = mongoose.model(

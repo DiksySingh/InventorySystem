@@ -1,6 +1,5 @@
 const moment = require("moment-timezone");
 const Item = require("../models/itemSchema");
-const OutgoingItem = require("../models/outgoingItemSchema");
 const ServicePerson = require("../models/servicePersonSchema");
 
 //Service Person: Add Outgoing Item Data

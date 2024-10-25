@@ -19,7 +19,7 @@ const outgoingItemTotalSchema = new Schema(
       },
     ],
   },
-  { collection: "inOutgoingItemDetails" }
+  { collection: "inTotalOutgoingItemDetails" }
 );
 
 const OutgoingItemDetails = mongoose.model(
