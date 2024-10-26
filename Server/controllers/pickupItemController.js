@@ -44,7 +44,6 @@ module.exports.returnItems = async (req, res) => {
         message: "Items must be a non-empty array",
       });
     }
-
     const outgoingItemsData = [];
 
     for (let item of items) {
@@ -72,14 +71,16 @@ module.exports.returnItems = async (req, res) => {
 
         // Decrease the stock
         itemRecord.stock -= quantityToAdjust;
-        outgoingItemsData.push({ itemName, quantity: quantityToAdjust });
+       
         console.log("outgoingItemsData: ", outgoingItemsData);
-      }else {
-        // Increase the stock if incoming is true
-        itemRecord.stock += quantityToAdjust;
       }
+      //  else {
+      //   // Increase the stock if incoming is true
+      //   itemRecord.stock += quantityToAdjust;
+      // }
 
       // Save the updated item record
+      outgoingItemsData.push({ itemName, quantity: quantityToAdjust });
       console.log("ItemsSchemaData: ", await itemRecord.save());
     }
 
@@ -187,8 +188,14 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       });
     }
 
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 5; 
+    const skip = (page - 1) * limit;
+
     const pickupItems = await PickupItem.find({ servicePerson: id })
       .sort({ pickupDate: -1 })
+      .skip(skip)
+      .limit(limit)
       .select("-__v -servicePerson");
 
     if (!pickupItems) {
@@ -207,9 +214,16 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       };
     });
 
+    const totalDocuments = await PickupItem.countDocuments({ servicePerson: id });
+    const totalPages = Math.ceil(totalDocuments / limit);
+
     res.status(200).json({
       success: true,
       message: "Data Fetched Successfully",
+      page,
+      totalPages,
+      limit,
+      totalDocuments,
       pickupItemsDetail,
     });
   } catch (error) {
@@ -234,13 +248,26 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
 //Warehouse Access
 module.exports.getPickupItems = async (req, res) => {
   try {
+    const page = parseInt(req.query.page) || 1; 
+    const limit = parseInt(req.query.limit) || 5; 
+    const skip = (page - 1) * limit;
+
     const pickupItems = await PickupItem.find()
       .populate("servicePerson", "_id name contact ")
+      .skip(skip)
+      .limit(limit)
       .sort({ pickupDate: -1 });
+
+    const totalDocuments = await PickupItem.countDocuments();
+    const totalPages = Math.ceil(totalDocuments / limit);
 
     res.status(200).json({
       success: true,
       message: "Data Fetched Successfully",
+      page,
+      totalPages,
+      limit,
+      totalDocuments,
       pickupItems,
     });
   } catch (error) {
@@ -316,6 +343,27 @@ module.exports.updateOrderStatus = async (req, res) => {
       }
 
       pickupItem.status = true;
+      const items = pickupItem.items;
+      for (let item of items) {
+        const itemName = item.itemName;
+        const quantityToAdjust = item.quantity;
+  
+        // Find the corresponding item in the Item schema
+        const itemRecord = await Item.findOne({ itemName });
+  
+        if (!itemRecord) {
+          return res.status(404).json({
+            success: false,
+            message: `Item ${itemName} not found in inventory`,
+          });
+        }
+  
+        if (incoming === true) {
+          // Increase the stock
+          itemRecord.stock = parseInt(itemRecord.stock) + parseInt(quantityToAdjust);
+        }
+        console.log("ItemsSchemaData: ", await itemRecord.save());
+      }
 
       const itemsToUpdate = pickupItem.items;
       const servicePersonId = pickupItem.servicePerson;
