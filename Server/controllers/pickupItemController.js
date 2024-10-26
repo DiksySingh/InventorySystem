@@ -74,11 +74,10 @@ module.exports.returnItems = async (req, res) => {
         itemRecord.stock -= quantityToAdjust;
         outgoingItemsData.push({ itemName, quantity: quantityToAdjust });
         console.log("outgoingItemsData: ", outgoingItemsData);
+      }else {
+        // Increase the stock if incoming is true
+        itemRecord.stock += quantityToAdjust;
       }
-      // else {
-      //   // Increase the stock if incoming is true
-      //   itemRecord.stock += quantityToAdjust;
-      // }
 
       // Save the updated item record
       console.log("ItemsSchemaData: ", await itemRecord.save());
@@ -230,7 +229,7 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
 //   }`, // Construct image URL
 // }));
 
-//res.status(200).json(itemsWithImageUrl);
+// res.status(200).json(itemsWithImageUrl);
 
 //Warehouse Access
 module.exports.getPickupItems = async (req, res) => {

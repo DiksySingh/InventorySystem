@@ -130,8 +130,8 @@ module.exports.incomingItems = async (req, res) => {
         message: `Item ${itemName} not found`,
       });
     }
-    const nondefectItem = quantity - defectiveItem;
-    foundItem.stock += nondefectItem;
+    //const nondefectItem = quantity - defectiveItem;
+    foundItem.stock += quantity;
     foundItem.updatedAt = Date.now();
     await foundItem.save();
 
