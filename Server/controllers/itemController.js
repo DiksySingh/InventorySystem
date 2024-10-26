@@ -131,7 +131,7 @@ module.exports.incomingItems = async (req, res) => {
       });
     }
     //const nondefectItem = quantity - defectiveItem;
-    foundItem.stock += quantity;
+    foundItem.stock = parseInt(foundItem.stock) + parseInt(quantity);
     foundItem.updatedAt = Date.now();
     await foundItem.save();
 
