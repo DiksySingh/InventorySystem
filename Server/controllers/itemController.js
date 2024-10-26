@@ -10,12 +10,12 @@ module.exports.addItem = async (req, res) => {
     });
   }
 
-  // if(!stock){
-  //     return res.status(400).json({
-  //         success: false,
-  //         message: "Stock is required"
-  //     });
-  // }
+  if(!stock){
+      return res.status(400).json({
+          success: false,
+          message: "Stock is required"
+      });
+  }
 
   try {
     const newItem = new Item({ itemName, stock, createdAt, updatedAt });
@@ -62,49 +62,6 @@ module.exports.showItems = async (req, res) => {
     });
   }
 };
-
-//Update Item
-// module.exports.updateItem = async (req, res) => {
-//   const { id } = req.query;
-//   const updates = req.body;
-//   console.log(updates);
-//   if (!id) {
-//     return res.status(400).json({
-//       success: false,
-//       message: "Item ID is required",
-//     });
-//   }
-
-//   try {
-//     const existingItem = await Item.findById({ _id: id });
-//     if (!existingItem) {
-//       return res.status(200).json({
-//         success: false,
-//         message: "Item Not Found",
-//       });
-//     }
-
-//     if (updates.itemName) {
-//       existingItem.itemName = updates.itemName;
-//     }
-//     if (updates.stock) {
-//       existingItem.stock += updates.stock;
-//     }
-
-//     await existingItem.save();
-//     const updatedItemData = await Item.findById({ _id: id });
-//     res.status(200).json({
-//       success: true,
-//       message: "Item updated successfully",
-//       item: updatedItemData,
-//     });
-//   } catch (error) {
-//     res.status(500).json({
-//       success: false,
-//       error: error.message,
-//     });
-//   }
-// };
 
 module.exports.incomingItems = async (req, res) => {
   try {
