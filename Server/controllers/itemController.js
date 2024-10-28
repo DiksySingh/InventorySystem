@@ -3,13 +3,6 @@ const IncomingItem = require("../models/incomingItemSchema");
 //Add New Item
 module.exports.addItem = async (req, res) => {
   const { itemName, stock, createdAt, updatedAt } = req.body;
-  const existingItem = await Item.find({itemName});
-  if(existingItem){
-    return res.status(400).json({
-      success: false,
-      message: "Item exists in warehouse"
-    });
-  }
   if (!itemName) {
     return res.status(400).json({
       success: false,
@@ -18,13 +11,21 @@ module.exports.addItem = async (req, res) => {
   }
 
   if(!stock){
-      return res.status(400).json({
-          success: false,
-          message: "Stock is required"
-      });
+    return res.status(400).json({
+        success: false,
+        message: "Stock is required"
+    });
   }
-
-  try {
+  try{
+  const existingItem = await Item.findOne({itemName: itemName});
+  console.log(existingItem);
+  if(existingItem){
+    return res.status(400).json({
+      success: false,
+      message: "Item exists in warehouse"
+    });
+  }
+  
     const newItem = new Item({ itemName, stock, createdAt, updatedAt });
     const itemData = await newItem.save();
     if (!itemData) {
@@ -34,13 +35,13 @@ module.exports.addItem = async (req, res) => {
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "Data Inserted Successfully",
       data: itemData,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: error.message,
     });
