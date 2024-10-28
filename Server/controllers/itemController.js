@@ -4,19 +4,21 @@ const IncomingItem = require("../models/incomingItemSchema");
 module.exports.addItem = async (req, res) => {
   const itemName = req.body.itemName.trim();
   const { stock, createdAt, updatedAt } = req.body;
+  console.log(stock);
   if (!itemName) {
     return res.status(400).json({
       success: false,
       message: "itemName is required",
     });
   }
-
-  if(!stock){
-    return res.status(400).json({
-        success: false,
-        message: "Stock is required"
-    });
+  
+  let isStock;
+  if(stock !== undefined){
+    isStock = stock;
+  }else{
+    isStock = 0;
   }
+
   try{
   const existingItem = await Item.findOne({itemName: { $regex: new RegExp(`^${itemName}$`, "i") }});
   console.log(existingItem);
@@ -27,7 +29,12 @@ module.exports.addItem = async (req, res) => {
     });
   }
   
-    const newItem = new Item({ itemName, stock, createdAt, updatedAt });
+    const newItem = new Item({ 
+      itemName, 
+      stock: isStock,
+      createdAt, 
+      updatedAt 
+    });
     const itemData = await newItem.save();
     if (!itemData) {
       return res.status(400).json({
