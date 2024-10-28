@@ -152,6 +152,44 @@ module.exports.incomingItemDetails = async(req, res) => {
 };
 
 
+//Updating Item Name
+module.exports.updateItemName = async (req, res) =>{
+  try{
+  const updateItemName = req.body.updateItemName;
+  const itemId = req.body.id;
+  if(!updateItemName){
+    return res.status(400).json({
+      success: false,
+      message: "itemName is required to update "
+    });
+  }
+
+  const itemData = await Item.findOne({_id: itemId});
+  if(!itemData) {
+    return res.status(404).json({
+      success: false, 
+      message: "itemData Not Found"
+    });
+  }
+
+  itemData.itemName = updateItemName;
+  await itemData.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Item Name Updated Successfully",
+    itemData 
+  })
+}catch(error){
+  return res.status(500).json({
+    success: true,
+    message: "Internal Server Error",
+    error:error.message
+  })
+}
+}
+
+
 
 //Delete Item
 module.exports.deleteItem = async (req, res) => {
