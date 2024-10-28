@@ -12,7 +12,7 @@ const router = require("express").Router();
 //Admin Accessible Route
 router.get(
   "/viewItems",
-  userVerification(["admin", "warehouseAdmin"]),
+  userVerification(["warehouseAdmin", "serviceperson"]),
   showItems
 );
 
