@@ -2,7 +2,8 @@ const Item = require("../models/itemSchema");
 const IncomingItem = require("../models/incomingItemSchema");
 //Add New Item
 module.exports.addItem = async (req, res) => {
-  const { itemName, stock, createdAt, updatedAt } = req.body;
+  const itemName = req.body.itemName.trim();
+  const { stock, createdAt, updatedAt } = req.body;
   if (!itemName) {
     return res.status(400).json({
       success: false,
@@ -17,7 +18,7 @@ module.exports.addItem = async (req, res) => {
     });
   }
   try{
-  const existingItem = await Item.findOne({itemName: itemName});
+  const existingItem = await Item.findOne({itemName: { $regex: new RegExp(`^${itemName}$`, "i") }});
   console.log(existingItem);
   if(existingItem){
     return res.status(400).json({
