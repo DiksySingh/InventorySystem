@@ -3,6 +3,13 @@ const IncomingItem = require("../models/incomingItemSchema");
 //Add New Item
 module.exports.addItem = async (req, res) => {
   const { itemName, stock, createdAt, updatedAt } = req.body;
+  const existingItem = await Item.find({itemName});
+  if(existingItem){
+    return res.status(400).json({
+      success: false,
+      message: "Item exists in warehouse"
+    });
+  }
   if (!itemName) {
     return res.status(400).json({
       success: false,
