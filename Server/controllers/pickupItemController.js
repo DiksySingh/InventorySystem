@@ -283,11 +283,12 @@ module.exports.getPickupItems = async (req, res) => {
 
 module.exports.servicePersonDashboard = async (req, res) => {
   try {
+    const servicePersonId = req.user._id
     // Fetch incoming and outgoing item data
-    const incomingItemData = await TotalOrderDetails.find({}).select(
+    const incomingItemData = await TotalOrderDetails.find({servicePerson: servicePersonId}).select(
       "-servicePerson"
     );
-    const outgoingItemData = await OutgoingItemDetails.find({}).select(
+    const outgoingItemData = await OutgoingItemDetails.find({servicePerson: servicePersonId}).select(
       "-servicePerson"
     );
 
