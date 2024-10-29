@@ -40,6 +40,12 @@ module.exports.addWarehouseItems = async(req, res) => {
     try{
         const {warehouseName, items} = req.body;
 
-        
+
+    }catch(error){
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message
+        });
     }
-}
+};
