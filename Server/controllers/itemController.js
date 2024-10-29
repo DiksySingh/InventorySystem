@@ -144,10 +144,19 @@ module.exports.incomingItemDetails = async(req, res) => {
             });
         }
 
+        const itemDetailsWithISTDate = itemDetails.map((item) => {
+          return {
+            ...item.toObject(), 
+            arrivedDate: moment(item.arrivedDate)
+              .tz("Asia/Kolkata")
+              .format("YYYY-MM-DD HH:mm:ss"), 
+          };
+        });
+
         res.status(200).json({
             success: true,
             message: "Data Fetched Successfully",
-            itemDetails
+            itemDetails: itemDetailsWithISTDate
         });
     }catch(error){
         res.status(500).json({
