@@ -1,22 +1,16 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
-const warehouseSchemna = new Schema({
+const warehouseSchema = new Schema({
     warehouseName: {
         type: String,
         required: true
     },
-    items: [
-        {
-          itemName: {
-            type: String,
-          },
-          quantity: {
-            type: Number,
-          },
-        },
-    ]
+    state: {
+        type: String,
+        required: true
+    },
 },{collection: "inWarehouses"});
 
-const Warehouse = mongoose.model("Warehouse", warhouseSchema);
+const Warehouse = mongoose.model("Warehouse", warehouseSchema);
 module.exports = Warehouse;
