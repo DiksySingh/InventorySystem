@@ -10,7 +10,7 @@ const authRoute = require("./routes/authRoute");
 const transactionRoute = require("./routes/transactionRoute");
 const pickupItemRoute = require("./routes/pickupItemRoute");
 
-const URI = process.env.MONGO_URL;
+const URI = process.env.MONGODB_URL;
 const PORT = process.env.PORT;
 
 main()

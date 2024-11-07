@@ -205,14 +205,14 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       });
     }
 
-    const pickupItemsDetail = pickupItems.map((pickupItem) => {
-      return {
-        ...pickupItem.toObject(),
-        pickupDate: moment(pickupItem.pickupDate)
-          .tz("Asia/Kolkata")
-          .format("YYYY-MM-DD HH:mm:ss"),
-      };
-    });
+    // const pickupItemsDetail = pickupItems.map((pickupItem) => {
+    //   return {
+    //     ...pickupItem.toObject(),
+    //     pickupDate: moment(pickupItem.pickupDate)
+    //       .tz("Asia/Kolkata")
+    //       .format("YYYY-MM-DD HH:mm:ss"),
+    //   };
+    // });
 
     const totalDocuments = await PickupItem.countDocuments({ servicePerson: id });
     const totalPages = Math.ceil(totalDocuments / limit);
@@ -330,7 +330,7 @@ module.exports.servicePersonDashboard = async (req, res) => {
 
 module.exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status, pickupItemId, incoming } = req.body;
+    const { status, pickupItemId, incoming, arrivedDate } = req.body;
     console.log("Body", req.body);
 
     if (status === true && incoming === true) {
@@ -344,6 +344,7 @@ module.exports.updateOrderStatus = async (req, res) => {
       }
 
       pickupItem.status = true;
+      pickupItem.arrivedDate = arrivedDate;
       const items = pickupItem.items;
       for (let item of items) {
         const itemName = item.itemName;
@@ -429,7 +430,8 @@ module.exports.updateOrderStatus = async (req, res) => {
       }
 
       pickupItem.status = true;
-
+      pickupItem.arrivedDate = arrivedDate;
+      
       const itemsToUpdate = pickupItem.items;
       const servicePersonId = pickupItem.servicePerson;
 

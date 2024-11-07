@@ -58,8 +58,10 @@ const pickupItemSchema = new Schema(
     },
     pickupDate: {
       type: Date,
-      default: Date.now,
     },
+    arrivedDate: {
+      type: Date
+    }
   },
   { collection: "inPickupItems" }
 );
