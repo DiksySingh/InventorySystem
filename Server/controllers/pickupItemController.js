@@ -224,7 +224,7 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       totalPages,
       limit,
       totalDocuments,
-      pickupItemsDetail,
+      pickupItems,
     });
   } catch (error) {
     res.status(500).json({
