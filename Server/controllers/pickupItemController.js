@@ -198,7 +198,7 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       .limit(limit)
       .select("-__v -servicePerson");
 
-    if (!pickupItems) {
+    if (!pickupItemsDetail) {
       return res.status(404).json({
         success: false,
         message: "Data Not Found",
