@@ -188,14 +188,14 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       });
     }
 
-    const page = parseInt(req.query.page) || 1; 
-    const limit = parseInt(req.query.limit) || 5; 
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1; 
+    // const limit = parseInt(req.query.limit) || 5; 
+    // const skip = (page - 1) * limit;
 
     const pickupItemsDetail = await PickupItem.find({ servicePerson: id })
       .sort({ pickupDate: -1 })
-      .skip(skip)
-      .limit(limit)
+      // .skip(skip)
+      // .limit(limit)
       .select("-__v -servicePerson");
 
     if (!pickupItemsDetail) {
@@ -214,16 +214,16 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
     //   };
     // });
 
-    const totalDocuments = await PickupItem.countDocuments({ servicePerson: id });
-    const totalPages = Math.ceil(totalDocuments / limit);
+    // const totalDocuments = await PickupItem.countDocuments({ servicePerson: id });
+    // const totalPages = Math.ceil(totalDocuments / limit);
 
     res.status(200).json({
       success: true,
       message: "Data Fetched Successfully",
-      page,
-      totalPages,
-      limit,
-      totalDocuments,
+      // page,
+      // totalPages,
+      // limit,
+      // totalDocuments,
       pickupItemsDetail,
     });
   } catch (error) {
@@ -248,26 +248,26 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
 //Warehouse Access
 module.exports.getPickupItems = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; 
-    const limit = parseInt(req.query.limit) || 5; 
-    const skip = (page - 1) * limit;
+    // const page = parseInt(req.query.page) || 1; 
+    // const limit = parseInt(req.query.limit) || 5; 
+    // const skip = (page - 1) * limit;
 
     const pickupItems = await PickupItem.find()
       .populate("servicePerson", "_id name contact ")
-      .skip(skip)
-      .limit(limit)
+      // .skip(skip)
+      // .limit(limit)
       .sort({ pickupDate: -1 });
 
-    const totalDocuments = await PickupItem.countDocuments();
-    const totalPages = Math.ceil(totalDocuments / limit);
+    // const totalDocuments = await PickupItem.countDocuments();
+    // const totalPages = Math.ceil(totalDocuments / limit);
 
     res.status(200).json({
       success: true,
       message: "Data Fetched Successfully",
-      page,
-      totalPages,
-      limit,
-      totalDocuments,
+      //page,
+      //totalPages,
+      //limit,
+      //totalDocuments,
       pickupItems,
     });
   } catch (error) {
