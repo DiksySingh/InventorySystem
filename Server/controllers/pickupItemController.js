@@ -192,7 +192,7 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
     const limit = parseInt(req.query.limit) || 5; 
     const skip = (page - 1) * limit;
 
-    const pickupItems = await PickupItem.find({ servicePerson: id })
+    const pickupItemsDetail = await PickupItem.find({ servicePerson: id })
       .sort({ pickupDate: -1 })
       .skip(skip)
       .limit(limit)
@@ -224,7 +224,7 @@ module.exports.pickupItemOfServicePerson = async (req, res) => {
       totalPages,
       limit,
       totalDocuments,
-      pickupItems,
+      pickupItemsDetail,
     });
   } catch (error) {
     res.status(500).json({
